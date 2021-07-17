@@ -65,16 +65,16 @@ The prefix for the bot commands.
 The players allowed to use the bot. Nobody but the users listed here will be able to run commands.
 ## Server and room data
 Haxball Server sends the token to the room as a `window.ServerData.Token` property. You'll have to adapt your room code to read it.
-```
+```js
 const room = HBInit({
 	roomName: "My room",
 	maxPlayers: 16,
 	noPlayer: true,
-    token: window["ServerData"].Token
+	token: window["ServerData"].Token
 });
 ```
 And if you want to give a name to your room:
-```bash
+```js
 window["RoomData"].name = "My awesome room";
 ```
 ## Using proxies
