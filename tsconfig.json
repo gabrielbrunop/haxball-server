@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "strict": true,
+        "target": "ES2017",
+        "lib": ["dom", "esnext"],
+        "types": ["node"],
+        "module": "commonjs",
+        "esModuleInterop": true,
+        "noImplicitAny": true,
+        "moduleResolution": "node",
+        "noUnusedLocals": true,
+        "sourceMap": true,
+        "declaration": true,
+        "declarationDir": "dist",
+        "outDir": "dist",
+        "suppressImplicitAnyIndexErrors": true,
+        "experimentalDecorators": true,
+        "resolveJsonModule": true
+    },
+    "files": [
+        "src/main.ts"
+    ],
+}
