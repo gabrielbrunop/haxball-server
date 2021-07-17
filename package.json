@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A small server for Haxball rooms",
   "main": "./dist/main.js",
+  "homepage": "https://github.com/gabrielbrop/haxball-server#readme",
   "publishConfig": {
     "access": "public"
   },
@@ -15,6 +16,9 @@
   "bin": {
     "haxballserver": "./dist/main.js"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@types/yargs": "^17.0.2",
     "discord.js": "^12.5.3",
