@@ -29,7 +29,7 @@
     "yargs": "^17.0.1"
   },
   "devDependencies": {
-    "@types/node": "^15.12.5",
+    "@types/node": "^15.14.2",
     "@types/node-os-utils": "^1.2.0",
     "@types/pidusage": "^2.0.1",
     "@types/ws": "^7.4.5",
