@@ -63,7 +63,20 @@ The token of your Discord bot.
 The prefix for the bot commands.
 #### mastersDiscordId: string[]
 The players allowed to use the bot. Nobody but the users listed here will be able to run commands.
-
+## Server and room data
+Haxball Server sends the token to the room as a `window.ServerData.Token` property. You'll have to adapt your room code to read it.
+```
+const room = HBInit({
+	roomName: "My room",
+	maxPlayers: 16,
+	noPlayer: true,
+    token: window["ServerData"].Token
+});
+```
+And if you want to give a name to your room:
+```bash
+window["RoomData"].name = "My awesome room";
+```
 ## Using proxies
 If you are hosting your Haxball server on AWS EC2, you can use the proxy feature (and therefore open more than 2 full functional rooms) by assigning an [Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepThreeEIP) to a [secondary IPv4 private address](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#assignIP-existing).
 
