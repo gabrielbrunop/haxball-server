@@ -75,7 +75,7 @@ const room = HBInit({
 ```
 And if you want to give a name to your room:
 ```js
-window["RoomData"].name = "My awesome room";
+window["RoomData"] = { name: "My awesome room" };
 ```
 ## Using proxies
 If you are hosting your Haxball server on AWS EC2, you can use the proxy feature (and therefore open more than 2 full functional rooms) by assigning an [Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepThreeEIP) to a [secondary IPv4 private address](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#assignIP-existing).
