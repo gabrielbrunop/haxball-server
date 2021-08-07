@@ -80,9 +80,11 @@ window["RoomData"].name = "My awesome room";
 ## Using proxies
 If you are hosting your Haxball server on AWS EC2, you can use the proxy feature (and therefore open more than 2 full functional rooms) by assigning an [Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepThreeEIP) to a [secondary IPv4 private address](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#assignIP-existing).
 
+Enabling the new secondary IP depends on which service you're using. This will work for Ubuntu 20.04 running on the T4G family (`t4g-small` is the best one). [According to the official documentation, Amazon Linux will automatically assign it for you](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepTwoConfigOS). If you're not using Amazon Linux or Ubuntu 20.04 with the T4G family, you'll have to look it up yourself; however, the steps will likely be similar to the steps below.
+
 After assigning them, you can enable the new secondary IP using:
 ```bash
-ip addr add xx.xx.xx.xx/20 dev ens5 label ens5:1
+sudo ip addr add xx.xx.xx.xx/20 dev ens5 label ens5:1
 ```
 To add a proxy to the new secondary IP, install Squid:
 ```bash
