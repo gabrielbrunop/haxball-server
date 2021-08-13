@@ -43,6 +43,10 @@ The proxy IP addresses. This is required if you enable proxies. Example:
 ```js
 "proxyServers": ["127.0.0.1:8000", "127.0.0.1:8001"]
 ```
+#### userDataDir?: string
+[Chrome user data dir path](https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/user_data_dir.md). Only works if cache is not disabled.
+#### disableCache?: boolean
+Disable all caching. Rooms will be started in incognito mode. This is highly recommended if you're not using localStorage or IndexedDB (and you shouldn't). 
 #### execPath: string
 The path to Chrome (or Chromium) executable file. If you are on Windows this will probably be `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`.
 
