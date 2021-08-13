@@ -14,7 +14,8 @@
   "author": "gabrielbrop",
   "license": "ISC",
   "bin": {
-    "haxballserver": "./dist/main.js"
+    "haxballserver": "./dist/main.js",
+    "haxball-server": "./dist/main.js"
   },
   "files": [
     "dist"
