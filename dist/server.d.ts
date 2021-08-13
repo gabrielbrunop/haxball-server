@@ -2,6 +2,8 @@ import puppeteer from 'puppeteer-core';
 interface ServerConfig {
     proxyEnabled?: boolean;
     proxyServers?: string[];
+    disableCache?: boolean;
+    userDataDir?: string;
     execPath: string;
 }
 export declare class Server {
@@ -10,6 +12,8 @@ export declare class Server {
     private _proxyEnabled;
     private _proxyServers;
     private _execPath;
+    private _disableCache;
+    private _userDataDir?;
     constructor(config: ServerConfig);
     private _createNewBrowser;
     private _openRoom;

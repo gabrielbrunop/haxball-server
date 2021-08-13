@@ -27,6 +27,8 @@ const blockedRes = [
 interface ServerConfig {
     proxyEnabled?: boolean,
     proxyServers?: string[],
+    disableCache?: boolean,
+    userDataDir?: string,
     execPath: string
 }
 
@@ -38,11 +40,15 @@ export class Server {
     private _proxyEnabled: boolean;
     private _proxyServers: string[];
     private _execPath: string;
+    private _disableCache: boolean;
+    private _userDataDir?: string;
 
     constructor(config: ServerConfig) {
         this._proxyEnabled = config?.proxyEnabled ?? false;
         this._proxyServers = config?.proxyServers ?? [];
         this._execPath = config.execPath;
+        this._disableCache = config.disableCache ?? false;
+        this._userDataDir = config.userDataDir;
     }
 
     private async _createNewBrowser() {
@@ -54,9 +60,10 @@ export class Server {
             "--no-first-run",
             "--no-zygote",
             "--single-process",
-            "--disable-gpu",
-            "--incognito"
+            "--disable-gpu"
         ];
+
+        if (this._disableCache) args.push("--incognito");
         
         let proxyServer = "";
 
@@ -83,11 +90,15 @@ export class Server {
             args.push("--proxy-server=" + proxyServer);
         }
 
-        const browser = await puppeteer.launch({
+        const puppeteerArgs = {
             headless: true,
             args: args,
             executablePath: this._execPath
-        });
+        };
+
+        if (this._userDataDir && this._disableCache !== true) puppeteerArgs["userDataDir"] = this._userDataDir;
+
+        const browser = await puppeteer.launch(puppeteerArgs);
 
         if (proxyServer != "") browser["proxyServer"] = proxyServer;
 
@@ -112,7 +123,7 @@ export class Server {
 		.on('response', response => console.log(`${response.status()} : ${response.url()}`))
 		.on('requestfailed', request => console.log(`${request.failure()?.errorText} : ${request.url()}`));
 
-        await page.setCacheEnabled(false);
+        if (this._disableCache) await page.setCacheEnabled(false);
 
         const client = await page.target().createCDPSession();
 

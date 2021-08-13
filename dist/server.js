@@ -27,12 +27,14 @@ const blockedRes = [
 ];
 class Server {
     constructor(config) {
-        var _a, _b;
+        var _a, _b, _c;
         this.browsers = [];
         this._unnamedCount = 1;
         this._proxyEnabled = (_a = config === null || config === void 0 ? void 0 : config.proxyEnabled) !== null && _a !== void 0 ? _a : false;
         this._proxyServers = (_b = config === null || config === void 0 ? void 0 : config.proxyServers) !== null && _b !== void 0 ? _b : [];
         this._execPath = config.execPath;
+        this._disableCache = (_c = config.disableCache) !== null && _c !== void 0 ? _c : false;
+        this._userDataDir = config.userDataDir;
     }
     async _createNewBrowser() {
         const args = [
@@ -43,9 +45,10 @@ class Server {
             "--no-first-run",
             "--no-zygote",
             "--single-process",
-            "--disable-gpu",
-            "--incognito"
+            "--disable-gpu"
         ];
+        if (this._disableCache)
+            args.push("--incognito");
         let proxyServer = "";
         if (this._proxyEnabled) {
             let availableProxies = this._proxyServers.filter(s => {
@@ -66,11 +69,14 @@ class Server {
             }
             args.push("--proxy-server=" + proxyServer);
         }
-        const browser = await puppeteer_core_1.default.launch({
+        const puppeteerArgs = {
             headless: true,
             args: args,
             executablePath: this._execPath
-        });
+        };
+        if (this._userDataDir && this._disableCache !== true)
+            puppeteerArgs["userDataDir"] = this._userDataDir;
+        const browser = await puppeteer_core_1.default.launch(puppeteerArgs);
         if (proxyServer != "")
             browser["proxyServer"] = proxyServer;
         this.browsers.push(browser);
@@ -89,7 +95,8 @@ class Server {
             .on('pageerror', ({ message }) => console.log(message))
             .on('response', response => console.log(`${response.status()} : ${response.url()}`))
             .on('requestfailed', request => { var _a; return console.log(`${(_a = request.failure()) === null || _a === void 0 ? void 0 : _a.errorText} : ${request.url()}`); });
-        await page.setCacheEnabled(false);
+        if (this._disableCache)
+            await page.setCacheEnabled(false);
         const client = await page.target().createCDPSession();
         const scripts = `
             window["ServerData"] = {
