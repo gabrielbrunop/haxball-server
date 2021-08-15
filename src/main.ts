@@ -62,13 +62,15 @@ args.command({
             keepAlive: true
         }
 
-        if (argv.password != null) params["password"] = argv.password;
-        if (argv.privateKey != null) {
-            const key = fs.readFileSync(argv.privateKey, 'utf-8');
-            params["privateKey"] = Buffer.from(key);
-        } 
+        if (argv.password != null) await connect({ ...params, password: argv.password });
 
-        await connect(params);
+        if (argv.privateKey != null) {
+            fs.readFile(argv.privateKey, { encoding: "utf-8" }, async (err, data) => {
+                if (err) return console.error(`${err.message}\nError while loading private key file`);
+
+                await connect({ ...params, privateKey: Buffer.from(data) });
+            });
+        } 
     }
 });
 
