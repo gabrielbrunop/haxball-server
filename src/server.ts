@@ -1,5 +1,10 @@
 import puppeteer from 'puppeteer-core';
 
+import { DebuggingServer } from "./debugging/DebuggingServer"
+import { getAvailablePort } from "./utils/getAvailablePort";
+
+import * as Global from "./Global";
+
 const selectorFrame = 'body > iframe';
 const selectorRoomLink = '#roomlink > p > a';
 
@@ -28,6 +33,7 @@ interface ServerConfig {
     proxyEnabled?: boolean,
     proxyServers?: string[],
     disableCache?: boolean,
+    disableRemote?: boolean,
     userDataDir?: string,
     execPath: string
 }
@@ -35,23 +41,34 @@ interface ServerConfig {
 export class Server {
     browsers: puppeteer.Browser[] = [];
 
-    private _unnamedCount = 1;
+    private unnamedCount = 1;
+    private remoteChromePort: number;
 
-    private _proxyEnabled: boolean;
-    private _proxyServers: string[];
-    private _execPath: string;
-    private _disableCache: boolean;
-    private _userDataDir?: string;
+    private proxyEnabled: boolean;
+    private proxyServers: string[];
+    private execPath: string;
+    private disableCache: boolean;
+    private userDataDir?: string;
+    private disableRemote: boolean;
+
+    private debuggingServer?: DebuggingServer;
 
     constructor(config: ServerConfig) {
-        this._proxyEnabled = config?.proxyEnabled ?? false;
-        this._proxyServers = config?.proxyServers ?? [];
-        this._execPath = config.execPath;
-        this._disableCache = config.disableCache ?? false;
-        this._userDataDir = config.userDataDir;
+        this.proxyEnabled = config?.proxyEnabled ?? false;
+        this.proxyServers = config?.proxyServers ?? [];
+        this.execPath = config.execPath;
+        this.disableCache = config.disableCache ?? false;
+        this.userDataDir = config.userDataDir;
+        this.remoteChromePort = Global.serverRoomFirstPort;
+        this.disableRemote = config.disableRemote ?? false;
+
+        if (!this.disableRemote) {
+            this.debuggingServer = new DebuggingServer();
+            this.debuggingServer.listen(Global.serverPort);
+        }
     }
 
-    private async _createNewBrowser() {
+    private async createNewBrowser() {
         const args = [
             "--no-sandbox",
             "--disable-setuid-sandbox",
@@ -60,15 +77,18 @@ export class Server {
             "--no-first-run",
             "--no-zygote",
             "--single-process",
-            "--disable-gpu"
+            "--disable-gpu",
         ];
 
-        if (this._disableCache) args.push("--incognito");
+        const remotePort = await getAvailablePort(this.remoteChromePort);
+
+        if (!this.disableRemote) args.push(`--remote-debugging-port=${remotePort}`);
+        if (this.disableCache) args.push("--incognito");
         
         let proxyServer = "";
 
-        if (this._proxyEnabled) {
-            let availableProxies = this._proxyServers.filter(s => {
+        if (this.proxyEnabled) {
+            let availableProxies = this.proxyServers.filter(s => {
                 let a = 0;
 
                 for (const browser of this.browsers) {
@@ -82,7 +102,7 @@ export class Server {
             });
 
             if (availableProxies.length === 0) {
-                proxyServer = this._proxyServers[this._proxyServers.length - 1];
+                proxyServer = this.proxyServers[this.proxyServers.length - 1];
             } else {
                 proxyServer = availableProxies[0];
             }
@@ -93,13 +113,14 @@ export class Server {
         const puppeteerArgs = {
             headless: true,
             args: args,
-            executablePath: this._execPath
+            executablePath: this.execPath
         };
 
-        if (this._userDataDir && this._disableCache !== true) puppeteerArgs["userDataDir"] = this._userDataDir;
+        if (this.userDataDir && this.disableCache !== true) puppeteerArgs["userDataDir"] = this.userDataDir;
 
         const browser = await puppeteer.launch(puppeteerArgs);
 
+        if (!this.disableRemote) browser["remotePort"] = remotePort;
         if (proxyServer != "") browser["proxyServer"] = proxyServer;
 
         this.browsers.push(browser);
@@ -110,20 +131,24 @@ export class Server {
 
                 if (!isConnected) b.close();
 
+                if (!this.disableRemote) this.debuggingServer?.removeRoom(remotePort);
+
                 return isConnected;
             });
         });
 
+        if (!this.disableRemote) this.debuggingServer?.addRoom(remotePort);
+
         return browser;
     }
 
-    private async _openRoom(page: puppeteer.Page, script: string, token: string): Promise<string> {
+    private async openRoom(page: puppeteer.Page, script: string, token: string): Promise<string> {
         page
 		.on('pageerror', ({ message }) => console.log(message))
 		.on('response', response => console.log(`${response.status()} : ${response.url()}`))
 		.on('requestfailed', request => console.log(`${request.failure()?.errorText} : ${request.url()}`));
 
-        if (this._disableCache) await page.setCacheEnabled(false);
+        if (this.disableCache) await page.setCacheEnabled(false);
 
         const client = await page.target().createCDPSession();
 
@@ -153,7 +178,7 @@ export class Server {
 
         await page.addScriptTag({ content: scripts });
         await page.addScriptTag({ content: script });
-        await page.addScriptTag({ content: `document.title = window["RoomData"]?.name ?? "Unnamed room ${this._unnamedCount++}";` })
+        await page.addScriptTag({ content: `document.title = window["RoomData"]?.name ?? "Unnamed room ${this.unnamedCount++}";` })
         await page.waitForSelector("iframe");
 
         const elementHandle = await page.$(selectorFrame);
@@ -168,14 +193,14 @@ export class Server {
     }
 
     async open(script: string, token: string) {
-        const browser = await this._createNewBrowser();
+        const browser = await this.createNewBrowser();
         const pid = browser?.process()?.pid;
         const [ page ] = await browser.pages();
 
         try {
-            const link = await this._openRoom(page, script, token);
+            const link = await this.openRoom(page, script, token);
 
-            return { link, pid };
+            return { link, pid, remotePort: browser["remotePort"] };
         } catch (e) {
             this.close(pid as number);
 
@@ -197,7 +222,10 @@ export class Server {
             const pid = b?.process()?.pid;
 
             if (pid == pOT) {
-                b.close();
+                b.close().then(() => {
+                    if (!this.disableRemote) this.debuggingServer?.removeRoom(b["remotePort"]);
+                });
+                
                 success = true;
             }
 

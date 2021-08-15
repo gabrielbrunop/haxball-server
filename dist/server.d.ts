@@ -3,23 +3,28 @@ interface ServerConfig {
     proxyEnabled?: boolean;
     proxyServers?: string[];
     disableCache?: boolean;
+    disableRemote?: boolean;
     userDataDir?: string;
     execPath: string;
 }
 export declare class Server {
     browsers: puppeteer.Browser[];
-    private _unnamedCount;
-    private _proxyEnabled;
-    private _proxyServers;
-    private _execPath;
-    private _disableCache;
-    private _userDataDir?;
+    private unnamedCount;
+    private remoteChromePort;
+    private proxyEnabled;
+    private proxyServers;
+    private execPath;
+    private disableCache;
+    private userDataDir?;
+    private disableRemote;
+    private debuggingServer?;
     constructor(config: ServerConfig);
-    private _createNewBrowser;
-    private _openRoom;
+    private createNewBrowser;
+    private openRoom;
     open(script: string, token: string): Promise<{
         link: string;
         pid: number | undefined;
+        remotePort: any;
     }>;
     close(pidOrTitle: string | number): Promise<boolean>;
 }

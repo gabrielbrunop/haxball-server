@@ -1,9 +1,10 @@
-import { Server } from "./server";
-import * as Discord from 'discord.js';
 import os from "node-os-utils";
 import fs from "fs";
 import pidusage from "pidusage";
 import process from "process";
+import * as Discord from 'discord.js';
+
+import { Server } from "./Server";
 
 type BotList = { [key: string]: string };
 
@@ -15,41 +16,41 @@ interface PainelConfig {
 }
 
 export class ServerPainel {
-    private _client = new Discord.Client();
+    private client = new Discord.Client();
 
-    private _cpu = os.cpu;
-    private _mem = os.mem;
+    private cpu = os.cpu;
+    private mem = os.mem;
 
-    private _prefix: string;
-    private _token: string;
+    private prefix: string;
+    private token: string;
 
-    private _mastersDiscordId: string[];
+    private mastersDiscordId: string[];
 
-    private _bots: BotList;
+    private bots: BotList;
 
-    constructor(private _server: Server, config: PainelConfig) {
-        this._prefix = config.discordPrefix;
-        this._token = config.discordToken;
-        this._mastersDiscordId = config.mastersDiscordId;
+    constructor(private server: Server, config: PainelConfig) {
+        this.prefix = config.discordPrefix;
+        this.token = config.discordToken;
+        this.mastersDiscordId = config.mastersDiscordId;
 
-        this._bots = config.bots;
+        this.bots = config.bots;
 
-        this._client.on('ready', () => {
-            console.log(`Logged in as ${this._client.user?.tag}!`);        
+        this.client.on('ready', () => {
+            console.log(`Logged in as ${this.client.user?.tag}!`);        
         });
 
-        this._client.on('message', async msg => {
+        this.client.on('message', async msg => {
             try {
-                this._command(msg);
+                this.command(msg);
             } catch (e) {
-                this._logError(e, msg.channel as Discord.TextChannel);
+                this.logError(e, msg.channel as Discord.TextChannel);
             }
         });
 
-        this._client.login(this._token);
+        this.client.login(this.token);
     }
 
-    private async _logError(e: Error | string, channel: Discord.TextChannel) {    
+    private async logError(e: Error | string, channel: Discord.TextChannel) {    
         const embed = new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setTitle("Log Error")
@@ -59,14 +60,20 @@ export class ServerPainel {
         await channel.send(embed);
     }
 
-    private async _getRoomNameList() {
+    private async getRoomNameList() {
         let rooms = [];
 
-        for (const browser of this._server.browsers) {
+        for (const browser of this.server.browsers) {
             const page = (await browser.pages())[0];
             const proxyServer = browser["proxyServer"];
+            const remotePort = browser["remotePort"];
+
+            let pageTitle = await page.title();
+            pageTitle = pageTitle != null && pageTitle != "" ? pageTitle : "Unnamed tab";
+
+            const nameStr = `${pageTitle} (${page.browser().process()?.pid})${remotePort != null ? ` (localhost:${remotePort})` : ""}`;
     
-            rooms.push({ name: `${await page.title()} (${page.browser().process()?.pid})`, proxy: proxyServer });
+            rooms.push({ name: nameStr, proxy: proxyServer });
         }
 
         if (rooms.length === 0) return "There are no open rooms!";
@@ -87,10 +94,10 @@ export class ServerPainel {
         return proxyRooms.map(r => `• ${r.proxy}\n${r.text}`).join("\n");
     }
 
-    private async _getRoomUsageList() {
+    private async getRoomUsageList() {
         const roomsUsage: { process: pidusage.Status, title: string }[] = [];
     
-        for (const browser of this._server.browsers) {
+        for (const browser of this.server.browsers) {
             const page = (await browser.pages())[0];
             
             roomsUsage.push({ process: await pidusage(browser?.process()?.pid as number), title: await page.title() });
@@ -99,16 +106,16 @@ export class ServerPainel {
         return roomsUsage;
     }
 
-    private async _command(msg: Discord.Message) {
-        if (!msg.content.startsWith(this._prefix)) return;
+    private async command(msg: Discord.Message) {
+        if (!msg.content.startsWith(this.prefix)) return;
 
-        const args = msg.content.slice(this._prefix.length).trim().split(' ');
-        const text = msg.content.slice(this._prefix.length).trim().replace(args[0] + " ", "");
+        const args = msg.content.slice(this.prefix.length).trim().split(' ');
+        const text = msg.content.slice(this.prefix.length).trim().replace(args[0] + " ", "");
         const command = args.shift()?.toLowerCase();
 
         const embed = new Discord.MessageEmbed().setColor('#0099ff');
     
-        if (this._mastersDiscordId.includes(msg.author.id)) {
+        if (this.mastersDiscordId.includes(msg.author.id)) {
             if (command === "help") {
                 embed
                     .setTitle("Help")
@@ -138,24 +145,24 @@ export class ServerPainel {
 
                 const token = text.replace(args[0] + " ", "").replace(/\"/g, "").replace("Token obtained: ", "");
 
-                if (!Object.keys(this._bots).includes(args[0])) {
-                    embed.setDescription(`This bot does not exist. Type ${this._prefix}info to see the list of available bots.`);
+                if (!Object.keys(this.bots).includes(args[0])) {
+                    embed.setDescription(`This bot does not exist. Type ${this.prefix}info to see the list of available bots.`);
     
                     return msg.channel.send(embed);
                 }
     
                 if (!token) {
-                    embed.setDescription(`You have to define a headless token [token](https://www.haxball.com/headlesstoken) as second argument: ${this._prefix}open <bot> <token>`);
+                    embed.setDescription(`You have to define a headless token [token](https://www.haxball.com/headlesstoken) as second argument: ${this.prefix}open <bot> <token>`);
                 }
     
-                fs.readFile(this._bots[args[0]], { encoding: 'utf-8' }, async (err, data) => {
+                fs.readFile(this.bots[args[0]], { encoding: 'utf-8' }, async (err, data) => {
                     if (err) {
                         embed.setDescription("Error: " + err);
                     } else {
                         try {
-                            const e = await this._server.open(data, token);
+                            const e = await this.server.open(data, token);
     
-                            embed.setDescription(`Room running! [Click here to join.](${e?.link})\nBrowser process: ${e?.pid}`);
+                            embed.setDescription(`Room running! [Click here to join.](${e?.link})\nBrowser process: ${e?.pid}${e?.remotePort ? `\nRemote debugging: localhost:${e.remotePort}`: ""}`);
                         } catch (e) {
                             embed.setDescription(`Unable to open the room!\n ${e}`);
                         }
@@ -166,8 +173,8 @@ export class ServerPainel {
             }
     
             if (command === "info") {
-                const roomList = await this._getRoomNameList();
-                const files = Object.keys(this._bots);
+                const roomList = await this.getRoomNameList();
+                const files = Object.keys(this.bots);
     
                 embed
                     .setTitle("Information")
@@ -185,14 +192,14 @@ export class ServerPainel {
     
                 const message = await msg.channel.send(embedLoading);
     
-                const roomsUsage = await this._getRoomUsageList();
+                const roomsUsage = await this.getRoomUsageList();
     
-                const memInfo = await this._mem.info();
-                const cpuUsage = await this._cpu.usage();
+                const memInfo = await this.mem.info();
+                const cpuUsage = await this.cpu.usage();
     
                 embed
                     .setTitle("Information")
-                    .addField("CPUs", this._cpu.count(), true)
+                    .addField("CPUs", this.cpu.count(), true)
                     .addField("CPU usage", cpuUsage + "%", true)
                     .addField("Free CPU", 100 - cpuUsage + "%", true)
                     .addField("Memory", `${(memInfo.usedMemMb / 1000).toFixed(2)}/${(memInfo.totalMemMb / 1000).toFixed(2)} GB (${memInfo.freeMemPercentage}% livre)`, true)
@@ -202,7 +209,7 @@ export class ServerPainel {
                 const serverPIDUsage = await pidusage(process.pid);
     
                 const serverCPUUsage = `CPU server usage: ${(serverPIDUsage.cpu).toFixed(2)}%\nMemory server usage: ${(serverPIDUsage.memory * 1e-6).toFixed(2)} MB\n`;
-                const roomCPUMessage = this._server.browsers.length > 0 ? "\n" + roomsUsage.map((room) => `**${room.title} (${room.process.pid})**:\n${(room.process.cpu).toFixed(2)}% CPU\n${(room.process.memory * 1e-6).toFixed(2)} MB memory\n`).join("\n") : "";
+                const roomCPUMessage = this.server.browsers.length > 0 ? "\n" + roomsUsage.map((room) => `**${room.title} (${room.process.pid})**:\n${(room.process.cpu).toFixed(2)}% CPU\n${(room.process.memory * 1e-6).toFixed(2)} MB memory\n`).join("\n") : "";
     
                 embed.setDescription(serverCPUUsage + roomCPUMessage + "\n");
     
@@ -214,7 +221,7 @@ export class ServerPainel {
                     .setTitle("Close room")
                     .setDescription("Unable to find room");
     
-                const res = await this._server.close(text);
+                const res = await this.server.close(text);
     
                 if (res) {
                     embed.setDescription("Room closed!");
@@ -230,7 +237,7 @@ export class ServerPainel {
     
                 await msg.channel.send(embed);
     
-                this._server.browsers.forEach(async browser => {
+                this.server.browsers.forEach(async browser => {
                     await browser.close();
                 });
     

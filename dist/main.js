@@ -4,31 +4,69 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const server_1 = require("./server");
-const painel_1 = require("./painel");
 const yargs_1 = __importDefault(require("yargs"));
 const fs_1 = __importDefault(require("fs"));
-const path_1 = __importDefault(require("path"));
-const argv = yargs_1.default(process.argv.slice(2))
-    .usage('Open a Haxball server.\nUsage: $0')
-    .string("f")
-    .alias('f', 'file')
-    .describe('f', 'Load the config.json file.')
-    .argv;
-const filePath = argv.file == null || argv.file == "" ? path_1.default.resolve(path_1.default.resolve('.'), "config.json") : argv.file;
-let data, config;
-try {
-    data = fs_1.default.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
-}
-catch (err) {
-    throw `Error while loading file, ${err}`;
-}
-try {
-    config = JSON.parse(data);
-}
-catch (err) {
-    throw `Error while parsing file, ${err}`;
-}
-const server = new server_1.Server(config.server);
-new painel_1.ServerPainel(server, config.painel);
+const connect_1 = require("./commands/connect");
+const openServer_1 = require("./commands/openServer");
+const args = yargs_1.default(process.argv.slice(2));
+args.command({
+    command: "open",
+    aliases: ["o", "r", "run", "server"],
+    describe: "Opens a Haxball server.",
+    builder: {
+        file: {
+            describe: "The config.json file.",
+            demandOption: false,
+            type: "string",
+        }
+    },
+    handler: (argv) => {
+        openServer_1.openServer(argv.file);
+    }
+});
+args.command({
+    command: "connect",
+    aliases: ["c"],
+    describe: "Forwards a remote debugging SSH tunnel.",
+    builder: {
+        host: {
+            describe: "The host name or IP address.",
+            demandOption: true,
+            type: "string"
+        },
+        user: {
+            describe: "The user name.",
+            demandOption: true,
+            type: "string"
+        },
+        password: {
+            describe: "Password for password-based authentication.",
+            demandOption: false,
+            type: "string",
+            conflicts: "privateKey"
+        },
+        privateKey: {
+            describe: "Private key for key-based authentication.",
+            demandOption: false,
+            type: "string",
+            conflicts: "password"
+        }
+    },
+    handler: async (argv) => {
+        const params = {
+            username: argv.user,
+            host: argv.host,
+            keepAlive: true
+        };
+        if (argv.password != null)
+            params["password"] = argv.password;
+        if (argv.privateKey != null) {
+            const key = fs_1.default.readFileSync(argv.privateKey, 'utf-8');
+            params["privateKey"] = Buffer.from(key);
+        }
+        await connect_1.connect(params);
+    }
+});
+args.demandCommand();
+args.parse();
 //# sourceMappingURL=main.js.map

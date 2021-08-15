@@ -1,8 +1,12 @@
-
 # Haxball Server
 
-Haxball Server is a small server utility for Haxball.
-
+Haxball Server is a feature-rich and stable headless server utility for Haxball.
+* Multiple rooms
+* Manage your rooms using a Discord bot
+* Open more than 2 rooms on the same machine using multiple IPs and a proxy server
+* Remote access to Dev Tools
+* Resource usage reports
+* Keep things simple while doing a lot
 ## Installation
 
 ```bash
@@ -14,7 +18,6 @@ Create a configuration file:
 ```json
 {
     "server": {
-        "proxyEnabled": false,
         "execPath": "your/path/to/chrome.exe"
     },
     "painel": {
@@ -28,15 +31,44 @@ Create a configuration file:
     }
 }
 ```
-Open the server:
+Open the server with a simple command:
 ```bash
-haxballserver -f config.json
+haxball-server open -f config.json
 ```
-Use `!help` (or the prefix you assigned) to see the server commands.
+Using Linux? Lacking an UI? Connect to the server remotely using (AWS example):
+```bash
+haxball-server connect --host "ec2-xx-xx-xx-xx.us-east-1.compute.amazonaws.com" --user "ubuntu" --privateKey "keys.pem"
+```
+Use `!help` (or the prefix you assigned) on Discord to see the server commands.
+## Server and room data
+Haxball Server sends the token to the room as a `window.ServerData.Token` property. You'll have to adapt your room code to read it.
+```js
+const room = HBInit({
+	roomName: "My room",
+	maxPlayers: 16,
+	noPlayer: true,
+	token: window["ServerData"].Token
+});
+```
+And if you want to give a name to your room (recommended):
+```js
+window["RoomData"] = { name: "My awesome room" };
+```
+## Remote debugging
+Haxball Server allows you to remotely access Chrome Dev Tools for all of your rooms by means of a SSH tunnel. All you have to do is to run a single command.
 
+Once the connection is established you'll be able to access the Dev Tools feature in [http://localhost:9601](http://localhost:9500).
+### Connect using a password
+```bash
+haxball-server connect --host "myhost.com" --user "myuser" --password "mypassword"
+```
+### Connect using a private key
+```bash
+haxball-server connect --host "myhost.com" --user "myuser" --privateKey "path/to/keys.pem"
+```
 ## Configuration
 ### server
-#### proxyEnabled: boolean
+#### proxyEnabled?: boolean
 Whether to use proxies or not. Haxball only allows 2 rooms per IP so if you want to open more than 2 rooms you'll have to create multiple IPs and assign them to a proxy server.
 #### proxyServers?: string[]
 The proxy IP addresses. This is required if you enable proxies. Example:
@@ -47,6 +79,8 @@ The proxy IP addresses. This is required if you enable proxies. Example:
 [Chrome user data dir path](https://chromium.googlesource.com/chromium/src/+/refs/heads/main/docs/user_data_dir.md). Only works if cache is not disabled.
 #### disableCache?: boolean
 Disable all caching. Rooms will be started in incognito mode. This is highly recommended if you're not using localStorage or IndexedDB (and you shouldn't). 
+#### disableRemote?: boolean
+Disable remote debugging. The server won't listen for connections.
 #### execPath: string
 The path to Chrome (or Chromium) executable file. If you are on Windows this will probably be `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`.
 
@@ -67,26 +101,12 @@ The token of your Discord bot.
 The prefix for the bot commands.
 #### mastersDiscordId: string[]
 The players allowed to use the bot. Nobody but the users listed here will be able to run commands.
-## Server and room data
-Haxball Server sends the token to the room as a `window.ServerData.Token` property. You'll have to adapt your room code to read it.
-```js
-const room = HBInit({
-	roomName: "My room",
-	maxPlayers: 16,
-	noPlayer: true,
-	token: window["ServerData"].Token
-});
-```
-And if you want to give a name to your room:
-```js
-window["RoomData"] = { name: "My awesome room" };
-```
 ## Using proxies
 If you are hosting your Haxball server on AWS EC2, you can use the proxy feature (and therefore open more than 2 full functional rooms) by assigning an [Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepThreeEIP) to a [secondary IPv4 private address](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#assignIP-existing).
 
-Enabling the new secondary IP depends on which service you're using. This will work for Ubuntu 20.04 running on the T4G family (`t4g-small` is the best one). [According to the official documentation, Amazon Linux will automatically assign it for you](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepTwoConfigOS). If you're not using Amazon Linux or Ubuntu 20.04 with the T4G family, you'll have to look it up yourself; however, the steps will likely be similar to the steps below.
+Enabling the new secondary IP depends on which service you're using. This will work for Ubuntu 20.04 running on the T4G family (`t4g-small` is the best one). [And according to the official documentation, Amazon Linux will automatically assign it for you](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepTwoConfigOS). If you're not using Amazon Linux or Ubuntu 20.04 with the T4G family, you'll have to look it up yourself; however, the steps will likely be similar to the steps below.
 
-After assigning them, you can enable the new secondary IP using:
+After assigning them, you can enable the new secondary IP using (you'll have to repeat this step every time you restart the instance):
 ```bash
 sudo ip addr add xx.xx.xx.xx/20 dev ens5 label ens5:1
 ```

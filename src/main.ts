@@ -1,34 +1,76 @@
 #!/usr/bin/env node
 
-import { Server } from "./server";
-import { ServerPainel } from "./painel";
 import yargs from "yargs";
 import fs from "fs";
-import path from "path";
 
-const argv = yargs(process.argv.slice(2))
-    .usage('Open a Haxball server.\nUsage: $0')
-    .string("f")
-    .alias('f', 'file')
-    .describe('f', 'Load the config.json file.')
-    .argv as any;
+import { connect } from "./commands/connect";
+import { openServer } from "./commands/openServer";
 
-const filePath = argv.file == null || argv.file == "" ? path.resolve(path.resolve('.'), "config.json") : argv.file;
+import { Config } from 'tunnel-ssh';
 
-let data, config;
+const args = yargs(process.argv.slice(2));
 
-try {
-    data = fs.readFileSync(filePath, { encoding: 'utf8', flag: 'r' });
-} catch (err) {
-    throw `Error while loading file, ${err}`;
-}
+args.command({
+    command: "open",
+    aliases: ["o", "r", "run", "server"],
+    describe: "Opens a Haxball server.",
+    builder: {
+        file: {
+            describe: "The config.json file.",
+            demandOption: false,
+            type: "string",
+                
+        }
+    },
+    handler: (argv) => {
+        openServer(argv.file as string);
+    }
+});
 
-try {
-    config = JSON.parse(data);
-} catch (err) {
-    throw `Error while parsing file, ${err}`;
-}
+args.command({
+    command: "connect",
+    aliases: ["c"],
+    describe: "Forwards a remote debugging SSH tunnel.",
+    builder: {
+        host: {
+            describe: "The host name or IP address.",
+            demandOption: true,
+            type: "string"
+        },
+        user: {
+            describe: "The user name.",
+            demandOption: true,
+            type: "string"
+        },
+        password: {
+            describe: "Password for password-based authentication.",
+            demandOption: false,
+            type: "string",
+            conflicts: "privateKey"
+        },
+        privateKey: {
+            describe: "Private key for key-based authentication.",
+            demandOption: false,
+            type: "string",
+            conflicts: "password"
+        }
+    },
+    handler: async (argv: any) => {
+        const params: Config = {
+            username: argv.user,
+            host: argv.host,
+            keepAlive: true
+        }
 
-const server = new Server(config.server);
+        if (argv.password != null) params["password"] = argv.password;
+        if (argv.privateKey != null) {
+            const key = fs.readFileSync(argv.privateKey, 'utf-8');
+            params["privateKey"] = Buffer.from(key);
+        } 
 
-new ServerPainel(server, config.painel);
+        await connect(params);
+    }
+});
+
+args.demandCommand()
+args.parse();
