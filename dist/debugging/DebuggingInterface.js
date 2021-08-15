@@ -76,7 +76,7 @@ class ConnectInterface {
             res.send(html);
         });
         app.listen(port, "localhost", () => {
-            console.log(`Listening at ${url}`);
+            console.log(`Listening web server at ${url}`);
         });
         return url;
     }

@@ -30,9 +30,10 @@ const DebuggingClient_1 = require("../debugging/DebuggingClient");
 const Global = __importStar(require("../Global"));
 async function connect(connectConfig) {
     let tunnels = [];
-    console.log("Establishing connection...");
+    console.log("Establishing remote connection...");
     tunnel_ssh_1.default(Object.assign(Object.assign({}, connectConfig), { dstPort: Global.serverPort, localPort: Global.clientPort }))
-        .on("error", () => {
+        .on("error", (err) => {
+        console.error("Error: " + err.message);
         console.error("A Haxball Server connection could not be opened.");
         process.exit();
     });

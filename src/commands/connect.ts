@@ -10,10 +10,11 @@ import * as Global from "../Global";
 export async function connect(connectConfig: Config) {
     let tunnels: { port: number, server: any }[] = [];
 
-    console.log("Establishing connection...");
+    console.log("Establishing remote connection...");
 
     tunnel({ ...connectConfig, dstPort: Global.serverPort, localPort: Global.clientPort })
-    .on("error", () => {
+    .on("error", (err) => {
+        console.error("Error: " + err.message)
         console.error("A Haxball Server connection could not be opened.");
         process.exit();
     });

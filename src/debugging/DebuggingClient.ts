@@ -27,7 +27,7 @@ export class DebuggingClient extends EventEmitter {
         this.client = new net.Socket();
 
         this.client.connect(port, 'localhost', () => {
-            console.log('Connected to debugging server');
+            console.log("Listening to client tunnel");
         });
         
         this.client.on('data', async (data) => {

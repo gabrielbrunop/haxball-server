@@ -42,7 +42,7 @@ class DebuggingClient extends events_1.default {
     listen(port) {
         this.client = new net_1.default.Socket();
         this.client.connect(port, 'localhost', () => {
-            console.log('Connected to debugging server');
+            console.log("Listening to client tunnel");
         });
         this.client.on('data', async (data) => {
             var _a;
