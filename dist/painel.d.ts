@@ -1,7 +1,11 @@
 import { Server } from "./Server";
 declare type BotList = {
     [key: string]: string;
-};
+} | {
+    name: string;
+    path: string;
+    displayName?: string;
+}[];
 interface PainelConfig {
     discordToken: string;
     discordPrefix: string;

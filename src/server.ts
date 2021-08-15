@@ -1,7 +1,8 @@
 import puppeteer from 'puppeteer-core';
 
-import { DebuggingServer } from "./debugging/DebuggingServer"
+import { DebuggingServer } from "./debugging/DebuggingServer";
 import { getAvailablePort } from "./utils/getAvailablePort";
+import { escapeString } from "./utils/escapeString";
 
 import * as Global from "./Global";
 
@@ -142,7 +143,7 @@ export class Server {
         return browser;
     }
 
-    private async openRoom(page: puppeteer.Page, script: string, token: string): Promise<string> {
+    private async openRoom(page: puppeteer.Page, script: string, token: string, name?: string): Promise<string> {
         page
 		.on('pageerror', ({ message }) => console.log(message))
 		.on('response', response => console.log(`${response.status()} : ${response.url()}`))
@@ -176,9 +177,11 @@ export class Server {
 
         if (!isTokenOk) throw new Error("Invalid token.");
 
+        name = escapeString(name) ?? `Unnamed room ${this.unnamedCount++}`;
+
         await page.addScriptTag({ content: scripts });
         await page.addScriptTag({ content: script });
-        await page.addScriptTag({ content: `document.title = window["RoomData"]?.name ?? "Unnamed room ${this.unnamedCount++}";` })
+        await page.addScriptTag({ content: `document.title = window["RoomData"]?.name ?? "${name}";` })
         await page.waitForSelector("iframe");
 
         const elementHandle = await page.$(selectorFrame);
@@ -192,13 +195,13 @@ export class Server {
         return link;
     }
 
-    async open(script: string, token: string) {
+    async open(script: string, token: string, name?: string) {
         const browser = await this.createNewBrowser();
         const pid = browser?.process()?.pid;
         const [ page ] = await browser.pages();
 
         try {
-            const link = await this.openRoom(page, script, token);
+            const link = await this.openRoom(page, script, token, name);
 
             return { link, pid, remotePort: browser["remotePort"] };
         } catch (e) {

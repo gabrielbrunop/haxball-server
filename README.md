@@ -21,10 +21,10 @@ Create a configuration file:
         "execPath": "your/path/to/chrome.exe"
     },
     "painel": {
-        "bots": {
-            "test": "path/to/test.js",
-            "test2": "path/to/test2.js"
-        },
+        "bots": [
+            { "name": "example1", "displayName": "Example room 1", "path": "path/to/example1.js" },
+            { "name": "example2", "displayName": "Example room 2", "path": "path/to/example2.js" }
+        ],
         "discordToken": "a discord bot token",
         "discordPrefix": "!",
         "mastersDiscordId": ["your discord id"]
@@ -37,7 +37,7 @@ haxball-server open -f config.json
 ```
 Using Linux? Lacking an UI? Connect to the server remotely using (AWS example):
 ```bash
-haxball-server connect --host "ec2-xx-xx-xx-xx.us-east-1.compute.amazonaws.com" --user "ubuntu" --privateKey "keys.pem"
+haxball-server connect --host "ec2-xx-xx-xx-xx.us-east-1.compute.amazonaws.com" --user "ubuntu" --privateKey "path/to/keys.pem"
 ```
 Use `!help` (or the prefix you assigned) on Discord to see the server commands.
 ## Server and room data
@@ -50,7 +50,8 @@ const room = HBInit({
 	token: window["ServerData"].Token
 });
 ```
-And if you want to give a name to your room (recommended):
+And if you want to give a name to your room:
+> ⚠️ This is not recommended anymore. Use the `displayName` property in the configuration file instead.
 ```js
 window["RoomData"] = { name: "My awesome room" };
 ```
@@ -93,8 +94,22 @@ And `execPath` will be:
 "execPath": "/usr/bin/chromium-browser"
 ```
 ### painel
-#### bots: { [name: string]: string }
+#### bots: { [name: string]: string } | { name: string, path: string, displayName?: string }[]
 The list of bots and the path to their JS file.
+##### Example (as an array - recommended):
+```js
+"bots": [
+	{ "name": "classic", "displayName": "Classic room", "path": "./bots/classic.js" },
+    { "name": "futsal", "displayName": "Futsal room", "path": "./bots/futsal.js" }
+]
+```
+##### Example (as an object, does not support `displayName`):
+```js
+"bots": {
+    "classic": "./bots/classic.js",
+    "futsal": "./bots/futsal.js"
+}
+```
 #### discordToken: string
 The token of your Discord bot.
 #### discordPrefix: string

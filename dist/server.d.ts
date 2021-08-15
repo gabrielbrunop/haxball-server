@@ -21,7 +21,7 @@ export declare class Server {
     constructor(config: ServerConfig);
     private createNewBrowser;
     private openRoom;
-    open(script: string, token: string): Promise<{
+    open(script: string, token: string, name?: string): Promise<{
         link: string;
         pid: number | undefined;
         remotePort: any;

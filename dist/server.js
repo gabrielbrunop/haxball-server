@@ -26,6 +26,7 @@ exports.Server = void 0;
 const puppeteer_core_1 = __importDefault(require("puppeteer-core"));
 const DebuggingServer_1 = require("./debugging/DebuggingServer");
 const getAvailablePort_1 = require("./utils/getAvailablePort");
+const escapeString_1 = require("./utils/escapeString");
 const Global = __importStar(require("./Global"));
 const selectorFrame = 'body > iframe';
 const selectorRoomLink = '#roomlink > p > a';
@@ -129,7 +130,8 @@ class Server {
             (_a = this.debuggingServer) === null || _a === void 0 ? void 0 : _a.addRoom(remotePort);
         return browser;
     }
-    async openRoom(page, script, token) {
+    async openRoom(page, script, token, name) {
+        var _a;
         page
             .on('pageerror', ({ message }) => console.log(message))
             .on('response', response => console.log(`${response.status()} : ${response.url()}`))
@@ -156,9 +158,10 @@ class Server {
         }, token);
         if (!isTokenOk)
             throw new Error("Invalid token.");
+        name = (_a = escapeString_1.escapeString(name)) !== null && _a !== void 0 ? _a : `Unnamed room ${this.unnamedCount++}`;
         await page.addScriptTag({ content: scripts });
         await page.addScriptTag({ content: script });
-        await page.addScriptTag({ content: `document.title = window["RoomData"]?.name ?? "Unnamed room ${this.unnamedCount++}";` });
+        await page.addScriptTag({ content: `document.title = window["RoomData"]?.name ?? "${name}";` });
         await page.waitForSelector("iframe");
         const elementHandle = await page.$(selectorFrame);
         const frame = await elementHandle.contentFrame();
@@ -167,13 +170,13 @@ class Server {
         const link = await frame.evaluate(el => el.textContent, roomLinkElement);
         return link;
     }
-    async open(script, token) {
+    async open(script, token, name) {
         var _a;
         const browser = await this.createNewBrowser();
         const pid = (_a = browser === null || browser === void 0 ? void 0 : browser.process()) === null || _a === void 0 ? void 0 : _a.pid;
         const [page] = await browser.pages();
         try {
-            const link = await this.openRoom(page, script, token);
+            const link = await this.openRoom(page, script, token, name);
             return { link, pid, remotePort: browser["remotePort"] };
         }
         catch (e) {

@@ -6,13 +6,41 @@ import * as Discord from 'discord.js';
 
 import { Server } from "./Server";
 
-type BotList = { [key: string]: string };
+type BotList = { [key: string]: string } | { name: string, path: string, displayName?: string }[];
 
 interface PainelConfig {
     discordToken: string;
     discordPrefix: string;
     bots: BotList;
     mastersDiscordId: string[];
+}
+
+class Bot {
+    constructor(
+        public name: string,
+        public path: string,
+        public displayName?: string
+    ) {}
+
+    read(): Promise<string> {
+        return new Promise((resolve, reject) => {
+            fs.readFile(this.path, { encoding: 'utf-8' }, async (err, data) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(data);
+                }
+            });
+        });
+    }
+
+    run(server: Server, data: string, token: string): ReturnType<Server["open"]> {
+        return new Promise((resolve, reject) => {
+            server.open(data, token, this.displayName)
+            .then(e => resolve(e))
+            .catch(err => reject(err));
+        });
+    }
 }
 
 export class ServerPainel {
@@ -26,14 +54,25 @@ export class ServerPainel {
 
     private mastersDiscordId: string[];
 
-    private bots: BotList;
+    private bots: Bot[] = [];
 
     constructor(private server: Server, config: PainelConfig) {
         this.prefix = config.discordPrefix;
         this.token = config.discordToken;
         this.mastersDiscordId = config.mastersDiscordId;
 
-        this.bots = config.bots;
+        if (!Array.isArray(config.bots)) {
+            for (const entry of Object.entries(config.bots)) {
+                const name = entry[0];
+                const path = entry[1];
+
+                this.bots.push(new Bot(name, path));
+            }
+        } else {
+            for (const bot of config.bots) {
+                this.bots.push(new Bot(bot.name, bot.path, bot.displayName));
+            }
+        }
 
         this.client.on('ready', () => {
             console.log(`Logged in as ${this.client.user?.tag}!`);        
@@ -143,43 +182,41 @@ export class ServerPainel {
             if (command === "open") {
                 embed.setTitle("Open room");
 
-                const token = text.replace(args[0] + " ", "").replace(/\"/g, "").replace("Token obtained: ", "");
+                const token = text.replace(args[0], "").trim().replace(/\"/g, "").replace("Token obtained: ", "");
+                const bot = this.bots.find(b => b.name === args[0]);
 
-                if (!Object.keys(this.bots).includes(args[0])) {
+                if (!bot) {
                     embed.setDescription(`This bot does not exist. Type ${this.prefix}info to see the list of available bots.`);
     
                     return msg.channel.send(embed);
                 }
     
-                if (!token) {
-                    embed.setDescription(`You have to define a headless token [token](https://www.haxball.com/headlesstoken) as second argument: ${this.prefix}open <bot> <token>`);
+                if (!token || token === "") {
+                    embed.setDescription(`You have to define a [headless token](https://www.haxball.com/headlesstoken) as second argument: ${this.prefix}open <bot> <token>`);
+                    
+                    return msg.channel.send(embed);
                 }
-    
-                fs.readFile(this.bots[args[0]], { encoding: 'utf-8' }, async (err, data) => {
-                    if (err) {
-                        embed.setDescription("Error: " + err);
-                    } else {
-                        try {
-                            const e = await this.server.open(data, token);
-    
-                            embed.setDescription(`Room running! [Click here to join.](${e?.link})\nBrowser process: ${e?.pid}${e?.remotePort ? `\nRemote debugging: localhost:${e.remotePort}`: ""}`);
-                        } catch (e) {
-                            embed.setDescription(`Unable to open the room!\n ${e}`);
-                        }
-                    }
-    
-                    msg.channel.send(embed);
+
+                bot.read().then(script => {
+                    bot.run(this.server, script, token).then(e => {
+                        msg.channel.send(embed.setDescription(`Room running! [Click here to join.](${e?.link})\nBrowser process: ${e?.pid}${e?.remotePort ? `\nRemote debugging: localhost:${e.remotePort}`: ""}`));
+                    })
+                    .catch(err => {
+                        msg.channel.send(embed.setDescription(`Unable to open the room!\n ${err}`));
+                    });
+                })
+                .catch(err => {
+                    embed.setDescription("Error: " + err); 
                 });
             }
     
             if (command === "info") {
                 const roomList = await this.getRoomNameList();
-                const files = Object.keys(this.bots);
     
                 embed
                     .setTitle("Information")
                     .addField("Open rooms", roomList)
-                    .addField("Bot list", files.join("\n"));
+                    .addField("Bot list", this.bots.map(b => b.name).join("\n"));
     
                 msg.channel.send(embed);
             }
