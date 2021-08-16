@@ -153,10 +153,21 @@ export class Server {
 
         const client = await page.target().createCDPSession();
 
+        if (name) {
+            name = `"${escapeString(name)}"`;
+        } else {
+            name = `args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}"`;
+        }
+
         const scripts = `
-            window["ServerData"] = {
-                Token: "${token}"
-            }`;
+        window.HBInit = new Proxy(window.HBInit, {
+            apply: (target, thisArg, args) => {
+                args[0]["token"] = "${token}";
+                document.title = ${name};
+        
+                return target(...args);
+            }
+        });`;
 
         await client.send('Network.setBlockedURLs', { urls: blockedRes });
         await page.goto('https://www.haxball.com/headless', { waitUntil: 'networkidle2' });
@@ -177,11 +188,9 @@ export class Server {
 
         if (!isTokenOk) throw new Error("Invalid token.");
 
-        name = escapeString(name) ?? `Unnamed room ${this.unnamedCount++}`;
-
         await page.addScriptTag({ content: scripts });
         await page.addScriptTag({ content: script });
-        await page.addScriptTag({ content: `document.title = window["RoomData"]?.name ?? "${name}";` })
+
         await page.waitForSelector("iframe");
 
         const elementHandle = await page.$(selectorFrame);

@@ -131,7 +131,6 @@ class Server {
         return browser;
     }
     async openRoom(page, script, token, name) {
-        var _a;
         page
             .on('pageerror', ({ message }) => console.log(message))
             .on('response', response => console.log(`${response.status()} : ${response.url()}`))
@@ -139,10 +138,21 @@ class Server {
         if (this.disableCache)
             await page.setCacheEnabled(false);
         const client = await page.target().createCDPSession();
+        if (name) {
+            name = `"${escapeString_1.escapeString(name)}"`;
+        }
+        else {
+            name = `args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}"`;
+        }
         const scripts = `
-            window["ServerData"] = {
-                Token: "${token}"
-            }`;
+        window.HBInit = new Proxy(window.HBInit, {
+            apply: (target, thisArg, args) => {
+                args[0]["token"] = "${token}";
+                document.title = ${name};
+        
+                return target(...args);
+            }
+        });`;
         await client.send('Network.setBlockedURLs', { urls: blockedRes });
         await page.goto('https://www.haxball.com/headless', { waitUntil: 'networkidle2' });
         const isTokenOk = await page.evaluate(async (token) => {
@@ -158,10 +168,8 @@ class Server {
         }, token);
         if (!isTokenOk)
             throw new Error("Invalid token.");
-        name = (_a = escapeString_1.escapeString(name)) !== null && _a !== void 0 ? _a : `Unnamed room ${this.unnamedCount++}`;
         await page.addScriptTag({ content: scripts });
         await page.addScriptTag({ content: script });
-        await page.addScriptTag({ content: `document.title = window["RoomData"]?.name ?? "${name}";` });
         await page.waitForSelector("iframe");
         const elementHandle = await page.$(selectorFrame);
         const frame = await elementHandle.contentFrame();
