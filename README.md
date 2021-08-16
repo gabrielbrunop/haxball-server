@@ -142,6 +142,8 @@ After assigning them, you can enable the new secondary IP using (you'll have to 
 ```bash
 sudo ip addr add xx.xx.xx.xx/20 dev ens5 label ens5:1
 ```
+Where xx.xx.xx.xx is the new secondary IP.
+
 To add a proxy to the new secondary IP, install Squid:
 ```bash
 sudo apt-get install squid
@@ -176,4 +178,14 @@ tcp_outgoing_address zz.zz.zz.zz prt8002
 And then restart the service:
 ```bash
 sudo systemctl restart squid
+```
+Now you'll be able to use the proxy feature by simply enabling the `server.proxyEnabled` config and adding your proxy IPs to `server.proxyServers`.
+
+Example:
+```json
+"server": {
+    "execPath": "/usr/bin/chromium-browser",
+    "proxyEnabled": true,
+    "proxyServers": ["127.0.0.1:8000", "127.0.0.1:8001"]
+}
 ```
