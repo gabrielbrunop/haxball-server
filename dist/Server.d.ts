@@ -1,12 +1,5 @@
 import puppeteer from 'puppeteer-core';
-interface ServerConfig {
-    proxyEnabled?: boolean;
-    proxyServers?: string[];
-    disableCache?: boolean;
-    disableRemote?: boolean;
-    userDataDir?: string;
-    execPath: string;
-}
+import { ServerConfig } from "./Global";
 export declare class Server {
     browsers: puppeteer.Browser[];
     private unnamedCount;
@@ -28,4 +21,3 @@ export declare class Server {
     }>;
     close(pidOrTitle: string | number): Promise<boolean>;
 }
-export {};

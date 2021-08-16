@@ -5,15 +5,9 @@ import process from "process";
 import * as Discord from 'discord.js';
 
 import { Server } from "./Server";
+import { PainelConfig } from "./Global";
 
-type BotList = { [key: string]: string } | { name: string, path: string, displayName?: string }[];
-
-interface PainelConfig {
-    discordToken: string;
-    discordPrefix: string;
-    bots: BotList;
-    mastersDiscordId: string[];
-}
+import { loadConfig } from "./utils/loadConfig";
 
 class Bot {
     constructor(
@@ -56,23 +50,12 @@ export class ServerPainel {
 
     private bots: Bot[] = [];
 
-    constructor(private server: Server, config: PainelConfig) {
+    constructor(private server: Server, config: PainelConfig, private fileName?: string) {
         this.prefix = config.discordPrefix;
         this.token = config.discordToken;
         this.mastersDiscordId = config.mastersDiscordId;
 
-        if (!Array.isArray(config.bots)) {
-            for (const entry of Object.entries(config.bots)) {
-                const name = entry[0];
-                const path = entry[1];
-
-                this.bots.push(new Bot(name, path));
-            }
-        } else {
-            for (const bot of config.bots) {
-                this.bots.push(new Bot(bot.name, bot.path, bot.displayName));
-            }
-        }
+        this.loadBots(config.bots);
 
         this.client.on('ready', () => {
             console.log(`Logged in as ${this.client.user?.tag}!`);        
@@ -87,6 +70,23 @@ export class ServerPainel {
         });
 
         this.client.login(this.token);
+    }
+
+    private loadBots(bots: PainelConfig["bots"]) {
+        this.bots = [];
+
+        if (!Array.isArray(bots)) {
+            for (const entry of Object.entries(bots)) {
+                const name = entry[0];
+                const path = entry[1];
+
+                this.bots.push(new Bot(name, path));
+            }
+        } else {
+            for (const bot of bots) {
+                this.bots.push(new Bot(bot.name, bot.path, bot.displayName));
+            }
+        }
     }
 
     private async logError(e: Error | string, channel: Discord.TextChannel) {    
@@ -164,6 +164,7 @@ export class ServerPainel {
                     .addField("meminfo", "CPU and memory info.", true)
                     .addField("open", "Open a room.", true)
                     .addField("close", "Close a room.", true)
+                    .addField("reload", "Reload the bot configuration.", true)
                     .addField("exit", "Close the server.", true)
                     .addField("eval", "Execute Javascript.", true)
                     .addField("tokenlink", "Haxball Headless Token page.", true);
@@ -292,6 +293,28 @@ export class ServerPainel {
                 } catch (err) {
                     msg.channel.send(`\`ERROR\` \`\`\`xl\n${err}\n\`\`\``);
                 }
+            }
+
+            if (command === "reload") {
+                embed.setTitle("Reload bots").setColor(0xFF0000);
+
+                loadConfig(this.fileName).then((config) => {
+                    if (!config.painel.bots) {
+                        embed.setDescription("Could not find bots in config file.");
+                    } else {
+                        this.loadBots(config.painel.bots);
+
+                        embed.setColor(0x0099FF).setDescription("Bot list reloaded!");
+                    }
+
+                    msg.channel.send(embed);
+                }).catch(err => {
+                    embed.setDescription(`*${err.message}*\n\nSee logs for details.`);
+
+                    console.error(err);
+
+                    msg.channel.send(embed);
+                });
             }
         }
     }

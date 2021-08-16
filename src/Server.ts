@@ -5,6 +5,7 @@ import { getAvailablePort } from "./utils/getAvailablePort";
 import { escapeString } from "./utils/escapeString";
 
 import * as Global from "./Global";
+import { ServerConfig } from "./Global";
 
 const selectorFrame = 'body > iframe';
 const selectorRoomLink = '#roomlink > p > a';
@@ -28,16 +29,6 @@ const blockedRes = [
 	'connect.facebook.net',
 	'sp.analytics.yahoo.com'
 ];
-
-
-interface ServerConfig {
-    proxyEnabled?: boolean,
-    proxyServers?: string[],
-    disableCache?: boolean,
-    disableRemote?: boolean,
-    userDataDir?: string,
-    execPath: string
-}
 
 export class Server {
     browsers: puppeteer.Browser[] = [];

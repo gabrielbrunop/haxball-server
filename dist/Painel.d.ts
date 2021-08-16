@@ -1,19 +1,8 @@
 import { Server } from "./Server";
-declare type BotList = {
-    [key: string]: string;
-} | {
-    name: string;
-    path: string;
-    displayName?: string;
-}[];
-interface PainelConfig {
-    discordToken: string;
-    discordPrefix: string;
-    bots: BotList;
-    mastersDiscordId: string[];
-}
+import { PainelConfig } from "./Global";
 export declare class ServerPainel {
     private server;
+    private fileName?;
     private client;
     private cpu;
     private mem;
@@ -21,10 +10,10 @@ export declare class ServerPainel {
     private token;
     private mastersDiscordId;
     private bots;
-    constructor(server: Server, config: PainelConfig);
+    constructor(server: Server, config: PainelConfig, fileName?: string | undefined);
+    private loadBots;
     private logError;
     private getRoomNameList;
     private getRoomUsageList;
     private command;
 }
-export {};
