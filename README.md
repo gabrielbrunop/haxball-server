@@ -48,17 +48,11 @@ Haxball Server allows you to remotely access Chrome Dev Tools for all of your ro
 Once the connection is established you'll be able to access the Dev Tools feature in [http://localhost:9601](http://localhost:9500).
 ### Connect using a password
 ```bash
-haxball-server connect
---host "myhost.com"
---user "myuser"
---password "mypassword"
+haxball-server connect --host "myhost.com" --user "myuser" --password "mypassword"
 ```
 ### Connect using a private key
 ```bash
-haxball-server connect
---host "myhost.com"
---user "myuser"
---privateKey "path/to/keys.pem"
+haxball-server connect --host "myhost.com" --user "myuser" --privateKey "path/to/keys.pem"
 ```
 ## Configuration
 ### server
