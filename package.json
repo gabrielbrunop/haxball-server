@@ -42,5 +42,14 @@
     "@types/ws": "^7.4.5",
     "@types/yargs": "^17.0.2",
     "typescript": "^4.3.5"
-  }
+  },
+  "keywords": [
+    "haxball",
+    "haxball bot",
+    "haxball server",
+    "headless",
+    "haxball headless",
+    "hax server",
+    "headless bot"
+  ]
 }
