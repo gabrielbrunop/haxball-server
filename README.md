@@ -35,38 +35,55 @@ Open the server with a simple command:
 ```bash
 haxball-server open -f config.json
 ```
-Using Linux? Lacking an UI? Connect to the server remotely using (AWS example):
+Using Linux? Lacking an UI?
+Connect to the server remotely using (AWS example):
 ```bash
 haxball-server connect --host "ec2-xx-xx-xx-xx.us-east-1.compute.amazonaws.com" --user "ubuntu" --privateKey "path/to/keys.pem"
 ```
-Use `!help` (or the prefix you assigned) on Discord to see the server commands.
-## Server and room data
-Haxball Server sends the token to the room as a `window.ServerData.Token` property. You'll have to adapt your room code to read it.
-```js
-const room = HBInit({
-	roomName: "My room",
-	maxPlayers: 16,
-	noPlayer: true,
-	token: window["ServerData"].Token
-});
-```
-And if you want to give a name to your room:
-> ⚠️ This is not recommended anymore. Use the `displayName` property in the configuration file instead.
-```js
-window["RoomData"] = { name: "My awesome room" };
-```
+You must open and close rooms directly on Discord using the bot whose token is being used in the config file.
+Use `!help` (or the prefix you assigned) to see the server commands.
 ## Remote debugging
 Haxball Server allows you to remotely access Chrome Dev Tools for all of your rooms by means of a SSH tunnel. All you have to do is to run a single command.
 
 Once the connection is established you'll be able to access the Dev Tools feature in [http://localhost:9601](http://localhost:9500).
 ### Connect using a password
 ```bash
-haxball-server connect --host "myhost.com" --user "myuser" --password "mypassword"
+haxball-server connect
+--host "myhost.com"
+--user "myuser"
+--password "mypassword"
 ```
 ### Connect using a private key
 ```bash
-haxball-server connect --host "myhost.com" --user "myuser" --privateKey "path/to/keys.pem"
+haxball-server connect
+--host "myhost.com"
+--user "myuser"
+--privateKey "path/to/keys.pem"
 ```
+## Discord commands
+### help
+Shows the commands.
+### info
+Shows open rooms and available bots.
+### meminfo
+Information about CPU and memory usage.
+### open <bot name> <token>
+Opens a room with the given bot.
+You can choose between the bots specified in the `painel.bots` config.
+
+The token parameter is a [Haxball headless token](https://www.haxball.com/headlesstoken).
+
+Once the room is open you'll be given the ID of the browser process. You may use it to close the room.
+### close <PID>
+Closes the room based on its process ID described above.
+### reload
+Reloads the `painel.bots` configuration.
+### exit
+Closes all rooms and stops Haxball Server.
+### eval
+Executes Javascript code.
+### tokenlink
+Gets the URL to the [Haxball headless token website](https://www.haxball.com/headlesstoken).
 ## Configuration
 ### server
 #### proxyEnabled?: boolean
@@ -99,7 +116,7 @@ The list of bots and the path to their JS file.
 ##### Example (as an array - recommended):
 ```js
 "bots": [
-	{ "name": "classic", "displayName": "Classic room", "path": "./bots/classic.js" },
+    { "name": "classic", "displayName": "Classic room", "path": "./bots/classic.js" },
     { "name": "futsal", "displayName": "Futsal room", "path": "./bots/futsal.js" }
 ]
 ```
