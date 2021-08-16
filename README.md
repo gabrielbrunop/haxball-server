@@ -60,30 +60,6 @@ haxball-server connect
 --user "myuser"
 --privateKey "path/to/keys.pem"
 ```
-## Discord commands
-### help
-Shows the commands.
-### info
-Shows open rooms and available bots.
-### meminfo
-Information about CPU and memory usage.
-### open <bot name> <token>
-Opens a room with the given bot.
-You can choose between the bots specified in the `painel.bots` config.
-
-The token parameter is a [Haxball headless token](https://www.haxball.com/headlesstoken).
-
-Once the room is open you'll be given the ID of the browser process. You may use it to close the room.
-### close <PID>
-Closes the room based on its process ID described above.
-### reload
-Reloads the `painel.bots` configuration.
-### exit
-Closes all rooms and stops Haxball Server.
-### eval
-Executes Javascript code.
-### tokenlink
-Gets the URL to the [Haxball headless token website](https://www.haxball.com/headlesstoken).
 ## Configuration
 ### server
 #### proxyEnabled?: boolean
@@ -133,6 +109,30 @@ The token of your Discord bot.
 The prefix for the bot commands.
 #### mastersDiscordId: string[]
 The players allowed to use the bot. Nobody but the users listed here will be able to run commands.
+## Discord commands
+### help
+Shows the commands.
+### info
+Shows open rooms and available bots.
+### meminfo
+Information about CPU and memory usage.
+### open <bot name> <token>
+Opens a room with the given bot.
+You can choose between the bots specified in the `painel.bots` config.
+
+The token parameter is a [Haxball headless token](https://www.haxball.com/headlesstoken).
+
+Once the room is open you'll be given the ID of the browser process. You may use it to close the room.
+### close <PID>
+Closes the room based on its process ID described above.
+### reload
+Reloads the `painel.bots` configuration.
+### exit
+Closes all rooms and stops Haxball Server.
+### eval
+Executes Javascript code.
+### tokenlink
+Gets the URL to the [Haxball headless token website](https://www.haxball.com/headlesstoken).
 ## Using proxies
 If you are hosting your Haxball server on AWS EC2, you can use the proxy feature (and therefore open more than 2 full functional rooms) by assigning an [Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepThreeEIP) to a [secondary IPv4 private address](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#assignIP-existing).
 
