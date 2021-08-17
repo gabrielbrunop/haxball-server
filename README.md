@@ -1,19 +1,30 @@
-# Haxball Server
+<h1 align="center">Haxball Server</h1>
 
-Haxball Server is a feature-rich and stable headless server utility for Haxball.
-* Multiple rooms
+<h3 align="center">Haxball Server is a feature-rich and stable headless server utility for Haxball.</h3>
+
+<p align="center">
+    <a href="https://github.com/gabrielbrop/haxball-server/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/gabrielbrop/haxball-server"></a>
+    <a href="https://github.com/gabrielbrop/haxball-server/network"><img alt="GitHub forks" src="https://img.shields.io/github/forks/gabrielbrop/haxball-server"></a>
+    <a href="https://github.com/gabrielbrop/haxball-server/issues"><img alt="GitHub issues" src="https://img.shields.io/github/issues/gabrielbrop/haxball-server"></a>
+    <img alt="GitHub code size in bytes" src="https://img.shields.io/github/languages/code-size/gabrielbrop/haxball-server">
+    <img alt="npm" src="https://img.shields.io/npm/dw/haxball-server">
+</p>
+
+<br />
+
+* Easily close and open rooms
 * Manage your rooms using a Discord bot
 * Open more than 2 rooms on the same machine using multiple IPs and a proxy server
 * Remote access to Dev Tools
 * Resource usage reports
 * Keep things simple while doing a lot
-## Installation
+## 📀 Installation
 
 ```bash
 npm install haxball-server -g
 ```
 
-## Usage
+## 💻 Usage
 Create a configuration file:
 ```json
 {
@@ -42,20 +53,20 @@ haxball-server connect --host "ec2-xx-xx-xx-xx.us-east-1.compute.amazonaws.com" 
 ```
 You must open and close rooms directly on Discord using the bot whose token is being used in the config file.
 Use `!help` (or the prefix you assigned) to see the server commands.
-## Remote debugging
+## 🏡 Remote debugging
 Haxball Server allows you to remotely access Chrome Dev Tools for all of your rooms by means of a SSH tunnel. All you have to do is to run a single command.
 
 Once the connection is established you'll be able to access the Dev Tools feature in [http://localhost:9601](http://localhost:9500).
-### Connect using a password
+### 🔐 Connect using a password
 ```bash
 haxball-server connect --host "myhost.com" --user "myuser" --password "mypassword"
 ```
-### Connect using a private key
+### 🔑 Connect using a private key
 ```bash
 haxball-server connect --host "myhost.com" --user "myuser" --privateKey "path/to/keys.pem"
 ```
-## Configuration
-### server
+## ⚙️ Configuration
+### 💾 server
 #### proxyEnabled?: boolean
 Whether to use proxies or not. Haxball only allows 2 rooms per IP so if you want to open more than 2 rooms you'll have to create multiple IPs and assign them to a proxy server.
 #### proxyServers?: string[]
@@ -80,7 +91,7 @@ And `execPath` will be:
 ```js
 "execPath": "/usr/bin/chromium-browser"
 ```
-### painel
+### 🖥️ painel
 #### bots: { [name: string]: string } | { name: string, path: string, displayName?: string }[]
 The list of bots and the path to their JS file.
 ##### Example (as an array - recommended):
@@ -103,21 +114,30 @@ The token of your Discord bot.
 The prefix for the bot commands.
 #### mastersDiscordId: string[]
 The players allowed to use the bot. Nobody but the users listed here will be able to run commands.
-## Discord commands
+
+## 🎮 Discord commands
 ### help
 Shows the commands.
 ### info
 Shows open rooms and available bots.
 ### meminfo
 Information about CPU and memory usage.
-### open <bot name> <token>
+### open
+> Accepts two parameters: bot name and token.
+> 
+> Example: !open futsal thr1.AAAAAGEbIjtlEn43C3G3Pw.ylh4au9g0SM
+
 Opens a room with the given bot.
 You can choose between the bots specified in the `painel.bots` config.
 
 The token parameter is a [Haxball headless token](https://www.haxball.com/headlesstoken).
 
 Once the room is open you'll be given the ID of the browser process. You may use it to close the room.
-### close <PID>
+### close
+> Accepts one parameter: PID (process ID).
+> 
+> Example: !close 5478
+
 Closes the room based on its process ID described above.
 ### reload
 Reloads the `painel.bots` configuration.
@@ -127,7 +147,7 @@ Closes all rooms and stops Haxball Server.
 Executes Javascript code.
 ### tokenlink
 Gets the URL to the [Haxball headless token website](https://www.haxball.com/headlesstoken).
-## Using proxies
+## 📡 Using proxies
 If you are hosting your Haxball server on AWS EC2, you can use the proxy feature (and therefore open more than 2 full functional rooms) by assigning an [Elastic IP](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepThreeEIP) to a [secondary IPv4 private address](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#assignIP-existing).
 
 Enabling the new secondary IP depends on which service you're using. This will work for Ubuntu 20.04 running on the T4G family (`t4g-small` is the best one). [And according to the official documentation, Amazon Linux will automatically assign it for you](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/MultipleIP.html#StepTwoConfigOS). If you're not using Amazon Linux or Ubuntu 20.04 with the T4G family, you'll have to look it up yourself; however, the steps will likely be similar to the steps below.
