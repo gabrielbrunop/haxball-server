@@ -5,7 +5,7 @@ import process from "process";
 import * as Discord from 'discord.js';
 
 import { Server } from "./Server";
-import { PainelConfig } from "./Global";
+import { CustomSettings, CustomSettingsList, PainelConfig } from "./Global";
 
 import { loadConfig } from "./utils/loadConfig";
 
@@ -28,9 +28,9 @@ class Bot {
         });
     }
 
-    run(server: Server, data: string, token: string): ReturnType<Server["open"]> {
+    run(server: Server, data: string, token: string, settings?: CustomSettings): ReturnType<Server["open"]> {
         return new Promise((resolve, reject) => {
-            server.open(data, token, this.displayName)
+            server.open(data, token, this.displayName, settings)
             .then(e => resolve(e))
             .catch(err => reject(err));
         });
@@ -50,10 +50,13 @@ export class ServerPainel {
 
     private bots: Bot[] = [];
 
+    private customSettings?: CustomSettingsList;
+
     constructor(private server: Server, config: PainelConfig, private fileName?: string) {
         this.prefix = config.discordPrefix;
         this.token = config.discordToken;
         this.mastersDiscordId = config.mastersDiscordId;
+        this.customSettings = config.customSettings;
 
         this.loadBots(config.bots);
 
@@ -183,7 +186,6 @@ export class ServerPainel {
             if (command === "open") {
                 embed.setTitle("Open room");
 
-                const token = text.replace(args[0], "").trim().replace(/\"/g, "").replace("Token obtained: ", "");
                 const bot = this.bots.find(b => b.name === args[0]);
 
                 if (!bot) {
@@ -191,6 +193,8 @@ export class ServerPainel {
     
                     return msg.channel.send(embed);
                 }
+
+                const token = args[1].replace(/\"/g, "").replace("Token obtained: ", "");
     
                 if (!token || token === "") {
                     embed.setDescription(`You have to define a [headless token](https://www.haxball.com/headlesstoken) as second argument: ${this.prefix}open <bot> <token>`);
@@ -198,8 +202,26 @@ export class ServerPainel {
                     return msg.channel.send(embed);
                 }
 
+                if (args[2] != null && this.customSettings == null) {
+                    embed.setDescription(`The \`${args[2]}\` settings could not be loaded because no custom setting has been defined.`);
+                    
+                    return msg.channel.send(embed);
+                }
+
+                let settings: CustomSettings;
+                
+                if (this.customSettings != null) {
+                    settings = this.customSettings[args[2]];
+
+                    if (!settings) {
+                        embed.setDescription(`The \`${args[2]}\` settings could not be found.`);
+                    
+                        return msg.channel.send(embed);
+                    }
+                }
+
                 bot.read().then(script => {
-                    bot.run(this.server, script, token).then(e => {
+                    bot.run(this.server, script, token, settings).then(e => {
                         msg.channel.send(embed.setDescription(`Room running! [Click here to join.](${e?.link})\nBrowser process: ${e?.pid}${e?.remotePort ? `\nRemote debugging: localhost:${e.remotePort}`: ""}`));
                     })
                     .catch(err => {
@@ -217,8 +239,9 @@ export class ServerPainel {
                 embed
                     .setTitle("Information")
                     .addField("Open rooms", roomList)
-                    .addField("Bot list", this.bots.map(b => b.name).join("\n"));
-    
+                    .addField("Bot list", this.bots.map(b => b.name).join("\n"))
+                    .addField("Custom settings list", this.customSettings ? Object.keys(this.customSettings).join("\n") : "No custom settings have been specified.");
+
                 msg.channel.send(embed);
             }
     
@@ -296,15 +319,16 @@ export class ServerPainel {
             }
 
             if (command === "reload") {
-                embed.setTitle("Reload bots").setColor(0xFF0000);
+                embed.setTitle("Reload bots and custom settings").setColor(0xFF0000);
 
                 loadConfig(this.fileName).then((config) => {
                     if (!config.painel.bots) {
                         embed.setDescription("Could not find bots in config file.");
                     } else {
                         this.loadBots(config.painel.bots);
+                        this.customSettings = config.painel.customSettings;
 
-                        embed.setColor(0x0099FF).setDescription("Bot list reloaded!");
+                        embed.setColor(0x0099FF).setDescription("Bot list and custom settings reloaded!");
                     }
 
                     msg.channel.send(embed);

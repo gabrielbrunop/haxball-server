@@ -5,7 +5,7 @@ import { getAvailablePort } from "./utils/getAvailablePort";
 import { escapeString } from "./utils/escapeString";
 
 import * as Global from "./Global";
-import { ServerConfig } from "./Global";
+import { CustomSettings, roomCustomConfigsList, ServerConfig } from "./Global";
 
 const selectorFrame = 'body > iframe';
 const selectorRoomLink = '#roomlink > p > a';
@@ -134,7 +134,7 @@ export class Server {
         return browser;
     }
 
-    private async openRoom(page: puppeteer.Page, script: string, token: string, name?: string): Promise<string> {
+    private async openRoom(page: puppeteer.Page, script: string, token: string, name?: string, settings?: CustomSettings): Promise<string> {
         page
 		.on('pageerror', ({ message }) => console.log(message))
 		.on('response', response => console.log(`${response.status()} : ${response.url()}`))
@@ -150,15 +150,37 @@ export class Server {
             name = `args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}"`;
         }
 
+        let reservedHBInitCustomSettingsScript = "";
+        let customSettingsScript = {};
+
+        if (settings) {
+            for (const setting of Object.entries(settings)) {
+                const key = setting[0];
+                const value = setting[1];
+
+                if (roomCustomConfigsList.map(config => "reserved.haxball." + config).includes(key)) {
+                    reservedHBInitCustomSettingsScript += `args[0]["${escapeString(key)}"] = ${JSON.stringify(value)};`;
+                } else {
+                    customSettingsScript[key] = value;
+                }
+            }
+        }
+
         const scripts = `
         window.HBInit = new Proxy(window.HBInit, {
             apply: (target, thisArg, args) => {
                 args[0]["token"] = "${token}";
+
+                ${reservedHBInitCustomSettingsScript}
+
                 document.title = ${name};
         
                 return target(...args);
             }
-        });`;
+        });
+        
+        window["CustomSettings"] = ${JSON.stringify(customSettingsScript)};
+        `;
 
         await client.send('Network.setBlockedURLs', { urls: blockedRes });
         await page.goto('https://www.haxball.com/headless', { waitUntil: 'networkidle2' });
@@ -195,13 +217,13 @@ export class Server {
         return link;
     }
 
-    async open(script: string, token: string, name?: string) {
+    async open(script: string, token: string, name?: string, settings?: CustomSettings) {
         const browser = await this.createNewBrowser();
         const pid = browser?.process()?.pid;
         const [ page ] = await browser.pages();
 
         try {
-            const link = await this.openRoom(page, script, token, name);
+            const link = await this.openRoom(page, script, token, name, settings);
 
             return { link, pid, remotePort: browser["remotePort"] };
         } catch (e) {
