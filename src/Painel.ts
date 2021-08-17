@@ -89,7 +89,7 @@ export class ServerPainel {
         }
     }
 
-    private async logError(e: Error | string, channel: Discord.TextChannel) {    
+    private async logError(e: any, channel: Discord.TextChannel) {    
         const embed = new Discord.MessageEmbed()
             .setColor('#0099ff')
             .setTitle("Log Error")
