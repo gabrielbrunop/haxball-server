@@ -110,14 +110,22 @@ Shows the commands.
 Shows open rooms and available bots.
 ### meminfo
 Information about CPU and memory usage.
-### open <bot name> <token>
+### open
+> Accepts two parameters: bot name and token.
+> 
+> Example: !open futsal thr1.AAAAAGEbIjtlEn43C3G3Pw.ylh4au9g0SM
+
 Opens a room with the given bot.
 You can choose between the bots specified in the `painel.bots` config.
 
 The token parameter is a [Haxball headless token](https://www.haxball.com/headlesstoken).
 
 Once the room is open you'll be given the ID of the browser process. You may use it to close the room.
-### close <PID>
+### close
+> Accepts one parameter: PID (process ID).
+> 
+> Example: !close 5478
+
 Closes the room based on its process ID described above.
 ### reload
 Reloads the `painel.bots` configuration.
