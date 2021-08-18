@@ -79,7 +79,7 @@ export class ControlPanel {
     private transformSetting(setting: CustomSettings, list: CustomSettingsList) {
         if (setting.extends) {
             const extensions = typeof setting.extends === "string" ? [setting.extends] : setting.extends;
-            let newSetting = { ...setting };
+            let newSetting: CustomSettings = {};
 
             for (const e of extensions) {
                 let ext = list[e];
@@ -87,9 +87,11 @@ export class ControlPanel {
                 if (ext) {
                     if (ext.extends) ext = this.transformSetting(ext, list);
 
-                    newSetting = { ...ext, ...newSetting };
+                    newSetting = { ...newSetting, ...ext };
                 }
             }
+
+            newSetting = { ...newSetting, ...setting };
 
             delete newSetting.extends;
 

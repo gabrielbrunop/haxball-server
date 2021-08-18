@@ -87,15 +87,16 @@ class ControlPanel {
     transformSetting(setting, list) {
         if (setting.extends) {
             const extensions = typeof setting.extends === "string" ? [setting.extends] : setting.extends;
-            let newSetting = Object.assign({}, setting);
+            let newSetting = {};
             for (const e of extensions) {
                 let ext = list[e];
                 if (ext) {
                     if (ext.extends)
                         ext = this.transformSetting(ext, list);
-                    newSetting = Object.assign(Object.assign({}, ext), newSetting);
+                    newSetting = Object.assign(Object.assign({}, newSetting), ext);
                 }
             }
+            newSetting = Object.assign(Object.assign({}, newSetting), setting);
             delete newSetting.extends;
             return newSetting;
         }
