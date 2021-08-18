@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DebuggingServer = exports.RoomDebuggingMessageType = void 0;
 const net_1 = __importDefault(require("net"));
+const log_1 = require("../utils/log");
 var RoomDebuggingMessageType;
 (function (RoomDebuggingMessageType) {
     RoomDebuggingMessageType[RoomDebuggingMessageType["UpdateRooms"] = 0] = "UpdateRooms";
@@ -28,7 +29,7 @@ class DebuggingServer {
     }
     listen(port) {
         this.server.on("listening", () => {
-            console.log(`Listening to remote connections on port ${port}`);
+            log_1.log("REMOTE DEBUGGING", `Listening to remote connections on port ${port}`);
         });
         this.server.on("connection", (socket) => {
             socket.setEncoding('utf8');
@@ -37,7 +38,7 @@ class DebuggingServer {
         });
         this.server.on("error", (err) => {
             if (err.message.includes("EADDRINUSE")) {
-                console.error(`Remote debugging port ${port} is already in use. Make sure you are not running another instance of Haxball Server in the background.`);
+                log_1.log("FATAL ERROR", `Remote debugging port ${port} is already in use. Make sure you are not running another instance of Haxball Server in the background.`);
                 process.exit();
             }
             else {
@@ -49,19 +50,19 @@ class DebuggingServer {
     setRooms(rooms) {
         this.roomServers = rooms;
         this.broadcast(RoomDebuggingMessageType.UpdateRooms, rooms);
-        console.log(`[SET] ${rooms}`);
+        log_1.log("UPDATE ROOM PORTS", rooms.join(", "));
     }
     addRoom(room) {
         this.roomServers.push(room);
         this.broadcast(RoomDebuggingMessageType.AddRoom, room);
-        console.log(`[ADD] :${room}`);
+        log_1.log("ADD ROOM PORT", room + "");
     }
     removeRoom(room) {
         if (!this.roomServers.includes(room))
             return;
         this.roomServers = this.roomServers.filter(r => r !== room);
         this.broadcast(RoomDebuggingMessageType.RemoveRoom, room);
-        console.log(`[DEL] :${room}`);
+        log_1.log("DELETE ROOM PORT", room + "");
     }
 }
 exports.DebuggingServer = DebuggingServer;

@@ -6,6 +6,8 @@ export const expressPort = 9601;
 export const wsPort = 9602;
 export const clientRoomFirstPort = 9603;
 
+export const maxLengthLog = 300;
+
 export const roomCustomConfigsList = [
     "roomName",
     "playerName",

@@ -3,6 +3,7 @@ import puppeteer, { Page } from 'puppeteer-core';
 import { DebuggingServer } from "./debugging/DebuggingServer";
 import { getAvailablePort } from "./utils/getAvailablePort";
 import { escapeString } from "./utils/escapeString";
+import { log } from "./utils/log";
 
 import * as Global from "./Global";
 import { CustomSettings, roomCustomConfigsList, ServerConfig } from "./Global";
@@ -84,7 +85,6 @@ export class Server {
                 let a = 0;
 
                 for (const browser of this.browsers) {
-                    console.log(browser["proxyServer"], s)
                     if (browser["proxyServer"] === s) {
                         a++;
                     }
@@ -151,10 +151,11 @@ export class Server {
     }
 
     private async openRoom(page: puppeteer.Page, script: string, tokens: string[], name?: string, settings?: CustomSettings): Promise<string> {
-        page
-		.on('pageerror', ({ message }) => console.log(message))
-		.on('response', response => console.log(`${response.status()} : ${response.url()}`))
-		.on('requestfailed', request => console.log(`${request.failure()?.errorText} : ${request.url()}`));
+        page.on("pageerror", ({ message }) => log("PAGE ERROR", message))
+		.on("response", response => log("PAGE RESPONSE", `${response.status()} : ${response.url()}`))
+		.on("requestfailed", request => log("REQUEST FAILED", `${request.failure()?.errorText} : ${request.url()}`))
+        .on("error", (err) => log("PAGE CRASHED", `${err}`))
+        .on("pageerror", (err) => log("ERROR IN PAGE", `${err}`));
 
         if (this.disableCache) await page.setCacheEnabled(false);
 

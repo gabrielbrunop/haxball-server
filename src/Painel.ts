@@ -8,6 +8,7 @@ import { Server } from "./Server";
 import { CustomSettings, CustomSettingsList, PainelConfig } from "./Global";
 
 import { loadConfig } from "./utils/loadConfig";
+import { log } from "./utils/log";
 
 class Bot {
     constructor(
@@ -61,7 +62,7 @@ export class ServerPainel {
         this.loadBots(config.bots);
 
         this.client.on('ready', () => {
-            console.log(`Logged in as ${this.client.user?.tag}!`);        
+            log("DISCORD", `Logged in as ${this.client.user?.tag}!`);        
         });
 
         this.client.on('message', async msg => {

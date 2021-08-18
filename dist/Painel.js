@@ -29,6 +29,7 @@ const pidusage_1 = __importDefault(require("pidusage"));
 const process_1 = __importDefault(require("process"));
 const Discord = __importStar(require("discord.js"));
 const loadConfig_1 = require("./utils/loadConfig");
+const log_1 = require("./utils/log");
 class Bot {
     constructor(name, path, displayName) {
         this.name = name;
@@ -71,7 +72,7 @@ class ServerPainel {
         this.loadBots(config.bots);
         this.client.on('ready', () => {
             var _a;
-            console.log(`Logged in as ${(_a = this.client.user) === null || _a === void 0 ? void 0 : _a.tag}!`);
+            log_1.log("DISCORD", `Logged in as ${(_a = this.client.user) === null || _a === void 0 ? void 0 : _a.tag}!`);
         });
         this.client.on('message', async (msg) => {
             try {

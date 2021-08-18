@@ -27,6 +27,7 @@ const puppeteer_core_1 = __importDefault(require("puppeteer-core"));
 const DebuggingServer_1 = require("./debugging/DebuggingServer");
 const getAvailablePort_1 = require("./utils/getAvailablePort");
 const escapeString_1 = require("./utils/escapeString");
+const log_1 = require("./utils/log");
 const Global = __importStar(require("./Global"));
 const Global_1 = require("./Global");
 const selectorFrame = 'body > iframe';
@@ -88,7 +89,6 @@ class Server {
             let availableProxies = this.proxyServers.filter(s => {
                 let a = 0;
                 for (const browser of this.browsers) {
-                    console.log(browser["proxyServer"], s);
                     if (browser["proxyServer"] === s) {
                         a++;
                     }
@@ -145,10 +145,11 @@ class Server {
         }, token);
     }
     async openRoom(page, script, tokens, name, settings) {
-        page
-            .on('pageerror', ({ message }) => console.log(message))
-            .on('response', response => console.log(`${response.status()} : ${response.url()}`))
-            .on('requestfailed', request => { var _a; return console.log(`${(_a = request.failure()) === null || _a === void 0 ? void 0 : _a.errorText} : ${request.url()}`); });
+        page.on("pageerror", ({ message }) => log_1.log("PAGE ERROR", message))
+            .on("response", response => log_1.log("PAGE RESPONSE", `${response.status()} : ${response.url()}`))
+            .on("requestfailed", request => { var _a; return log_1.log("REQUEST FAILED", `${(_a = request.failure()) === null || _a === void 0 ? void 0 : _a.errorText} : ${request.url()}`); })
+            .on("error", (err) => log_1.log("PAGE CRASHED", `${err}`))
+            .on("pageerror", (err) => log_1.log("ERROR IN PAGE", `${err}`));
         if (this.disableCache)
             await page.setCacheEnabled(false);
         const client = await page.target().createCDPSession();

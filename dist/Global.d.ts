@@ -4,6 +4,7 @@ export declare const clientPort = 9600;
 export declare const expressPort = 9601;
 export declare const wsPort = 9602;
 export declare const clientRoomFirstPort = 9603;
+export declare const maxLengthLog = 300;
 export declare const roomCustomConfigsList: string[];
 declare type BotList = {
     [key: string]: string;
