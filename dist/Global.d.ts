@@ -33,7 +33,7 @@ export interface HaxballServerConfig {
     panel: PanelConfig;
 }
 export interface CustomSettings {
-    extends?: string;
+    extends?: string | string[];
     [key: string]: any;
 }
 export declare type ReservedCustomSettings = "reserved.haxball.roomName" | "reserved.haxball.playerName" | "reserved.haxball.password" | "reserved.haxball.maxPlayers" | "reserved.haxball.public" | "reserved.haxball.geo" | "reserved.haxball.noPlayer";

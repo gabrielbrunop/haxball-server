@@ -43,7 +43,7 @@ export interface HaxballServerConfig {
 }
 
 export interface CustomSettings {
-    extends?: string;
+    extends?: string | string[];
     [key: string]: any;
 }
 
