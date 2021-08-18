@@ -23,9 +23,9 @@ export async function connect(connectConfig: Config) {
 
     client.on("set", async (rooms) => {
         for (const room of rooms) {
-            const server = tunnel({ ...connectConfig, dstPort: room.server, localPort: room.client });
+            const tunnelSrv = tunnel({ ...connectConfig, dstPort: room.server, localPort: room.client });
             
-            tunnels.push({ port: room.client, server });
+            tunnels.push({ port: room.client, server: tunnelSrv });
         }
 
         const url = new ConnectInterface().listen(Global.expressPort, Global.wsPort, client);
@@ -34,17 +34,17 @@ export async function connect(connectConfig: Config) {
     });
 
     client.on("add", async (server, client) => {
-        tunnel({ ...connectConfig, dstPort: server, localPort: client });
+        const tunnelSrv = tunnel({ ...connectConfig, dstPort: server, localPort: client });
 
-        tunnels.push({ port: client, server });
+        tunnels.push({ port: client, server: tunnelSrv });
     });
 
     client.on("remove", async (server, client) => {
         const tunnel = tunnels.find(t => t.port === client);
 
         if (tunnel) {
-            tunnel.server.close();
-            tunnels = tunnels.filter(t => t !== tunnel);
+            tunnel.server?.close();
+            tunnels = tunnels.filter(t => t.port !== tunnel.port);
         }
     });
 

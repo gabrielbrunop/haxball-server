@@ -40,21 +40,22 @@ async function connect(connectConfig) {
     const client = new DebuggingClient_1.DebuggingClient();
     client.on("set", async (rooms) => {
         for (const room of rooms) {
-            const server = tunnel_ssh_1.default(Object.assign(Object.assign({}, connectConfig), { dstPort: room.server, localPort: room.client }));
-            tunnels.push({ port: room.client, server });
+            const tunnelSrv = tunnel_ssh_1.default(Object.assign(Object.assign({}, connectConfig), { dstPort: room.server, localPort: room.client }));
+            tunnels.push({ port: room.client, server: tunnelSrv });
         }
         const url = new DebuggingInterface_1.ConnectInterface().listen(Global.expressPort, Global.wsPort, client);
         await open_1.default(url);
     });
     client.on("add", async (server, client) => {
-        tunnel_ssh_1.default(Object.assign(Object.assign({}, connectConfig), { dstPort: server, localPort: client }));
-        tunnels.push({ port: client, server });
+        const tunnelSrv = tunnel_ssh_1.default(Object.assign(Object.assign({}, connectConfig), { dstPort: server, localPort: client }));
+        tunnels.push({ port: client, server: tunnelSrv });
     });
     client.on("remove", async (server, client) => {
+        var _a;
         const tunnel = tunnels.find(t => t.port === client);
         if (tunnel) {
-            tunnel.server.close();
-            tunnels = tunnels.filter(t => t !== tunnel);
+            (_a = tunnel.server) === null || _a === void 0 ? void 0 : _a.close();
+            tunnels = tunnels.filter(t => t.port !== tunnel.port);
         }
     });
     client.listen(Global.clientPort);
