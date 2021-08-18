@@ -137,29 +137,38 @@ For example:
 ```
 Bots loaded with the `3v3` settings will be named `Futsal 3v3`. The same applies to `4v4`. The `gameMode` setting will be available in `window.CustomSettings.gameMode`.
 
-Custom settings also support inheritance. Suppose you want to define your room geolocation using custom settings:
+Custom settings also support inheritance and multiple inheritance. Suppose you want to define your room geolocation using custom settings as well as create a private room for your league:
 ```json
 "customSettings": {
-    "new_york": {
+    "new-york": {
         "reserved.haxball.geo": {
             "code": "us",
             "lat": 40.730,
             "lon": -73.935
         }
     },
+    "competitive": {
+    	"reserved.haxball.password": "12345"
+    },
     "3v3": {
-        "extends": "new_york",
+        "extends": "new-york",
         "reserved.haxball.roomName": "Futsal 3v3",
         "gameMode": 3
     },
     "4v4": {
-        "extends": "new_york",
+        "extends": "new-york",
         "reserved.haxball.roomName": "Futsal 4v4",
         "gameMode": 4
+    },
+    "3v3-league": {
+        "extends": ["competitive", "3v3"],
+	"reserved.haxball.roomName": "Futsal 3v3 League"
     }
 }
 ```
-And on Discord you would open the 3v3 room like this: `!open futsal thr1.AAAAAGEdKD4xW3bEOZDBBA.ZCzb426KBF4 3v3`
+With this configuration you'd open your public rooms with the `3v3` and `4v4` settings, and when there's a match in your league, you'd open a room with the `3v3-league` setting. All using the same `futsal.js` bot!
+
+For instance, on Discord you would open the `3v3` room like this: `!open futsal thr1.AAAAAGEdKD4xW3bEOZDBBA.ZCzb426KBF4 3v3`
 
 ## 🎮 Discord commands
 ### help
@@ -260,7 +269,7 @@ Example:
 }
 ```
 ## ⚙️ Full configuration example
-A full example in an Ubuntu machine with a `bots` folder with `futsal.js` and `classic.js` files.
+A full example in an Ubuntu machine with a `bots` folder with `futsal.js` and `classic.js` files and multiple settings for the futsal bot.
 
 Discord IDs and token are fictional.
 ```json
@@ -288,6 +297,9 @@ Discord IDs and token are fictional.
                     "lon": 2.3511
                 }
             },
+	    "testMode": {
+            	"reserved.haxball.public": false
+            },
             "3v3": {
                 "extends": "myGeo",
                 "reserved.haxball.roomName": "Futsal 3v3",
@@ -298,8 +310,11 @@ Discord IDs and token are fictional.
                 "reserved.haxball.roomName": "Futsal 4v4",
                 "gameMode": 4
             },
-            "testMode": {
-                "reserved.haxball.public": false
+            "testMode3v3": {
+	    	"extends": ["3v3", "testMode"]
+            },
+	    "testMode4v4": {
+	    	"extends": ["4v4", "testMode"]
             }
         }
     }
