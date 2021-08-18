@@ -9,7 +9,7 @@ const path_1 = __importDefault(require("path"));
 function validate(object) {
     if (!object.server)
         return false;
-    if (!object.painel)
+    if (!object.panel)
         return false;
     return true;
 }

@@ -5,7 +5,7 @@ import process from "process";
 import * as Discord from 'discord.js';
 
 import { Server } from "./Server";
-import { CustomSettings, CustomSettingsList, PainelConfig } from "./Global";
+import { CustomSettings, CustomSettingsList, PanelConfig } from "./Global";
 
 import { loadConfig } from "./utils/loadConfig";
 import { log } from "./utils/log";
@@ -38,7 +38,7 @@ class Bot {
     }
 }
 
-export class ServerPainel {
+export class ControlPanel {
     private client = new Discord.Client();
 
     private cpu = os.cpu;
@@ -53,7 +53,7 @@ export class ServerPainel {
 
     private customSettings?: CustomSettingsList;
 
-    constructor(private server: Server, config: PainelConfig, private fileName?: string) {
+    constructor(private server: Server, config: PanelConfig, private fileName?: string) {
         this.prefix = config.discordPrefix;
         this.token = config.discordToken;
         this.mastersDiscordId = config.mastersDiscordId;
@@ -91,7 +91,7 @@ export class ServerPainel {
         this.customSettings = customSettings;
     }
 
-    private loadBots(bots: PainelConfig["bots"]) {
+    private loadBots(bots: PanelConfig["bots"]) {
         this.bots = [];
 
         if (!Array.isArray(bots)) {
@@ -359,11 +359,11 @@ export class ServerPainel {
                 embed.setTitle("Reload bots and custom settings").setColor(0xFF0000);
 
                 loadConfig(this.fileName).then((config) => {
-                    if (!config.painel.bots) {
+                    if (!config.panel.bots) {
                         embed.setDescription("Could not find bots in config file.");
                     } else {
-                        this.loadBots(config.painel.bots);
-                        if (config.painel.customSettings) this.loadCustomSettings(config.painel.customSettings);
+                        this.loadBots(config.panel.bots);
+                        if (config.panel.customSettings) this.loadCustomSettings(config.panel.customSettings);
 
                         embed.setColor(0x0099FF).setDescription("Bot list and custom settings reloaded!");
                     }

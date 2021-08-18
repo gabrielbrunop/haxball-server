@@ -1,12 +1,12 @@
 import { Server } from "../Server";
-import { ServerPainel } from "../Painel";
+import { ControlPanel } from "../ControlPanel";
 
 import { loadConfig } from "../utils/loadConfig";
 
 export function openServer(file?: string) {
     loadConfig(file).then(config => {
         const server = new Server(config.server);
-        new ServerPainel(server, config.painel, file);
+        new ControlPanel(server, config.panel, file);
     }).catch(err => {
         console.error(err.error ? err.message + ", " + err.error : err.message);
         process.exit();

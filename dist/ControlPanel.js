@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ServerPainel = void 0;
+exports.ControlPanel = void 0;
 const node_os_utils_1 = __importDefault(require("node-os-utils"));
 const fs_1 = __importDefault(require("fs"));
 const pidusage_1 = __importDefault(require("pidusage"));
@@ -56,7 +56,7 @@ class Bot {
         });
     }
 }
-class ServerPainel {
+class ControlPanel {
     constructor(server, config, fileName) {
         this.server = server;
         this.fileName = fileName;
@@ -307,13 +307,13 @@ class ServerPainel {
             if (command === "reload") {
                 embed.setTitle("Reload bots and custom settings").setColor(0xFF0000);
                 loadConfig_1.loadConfig(this.fileName).then((config) => {
-                    if (!config.painel.bots) {
+                    if (!config.panel.bots) {
                         embed.setDescription("Could not find bots in config file.");
                     }
                     else {
-                        this.loadBots(config.painel.bots);
-                        if (config.painel.customSettings)
-                            this.loadCustomSettings(config.painel.customSettings);
+                        this.loadBots(config.panel.bots);
+                        if (config.panel.customSettings)
+                            this.loadCustomSettings(config.panel.customSettings);
                         embed.setColor(0x0099FF).setDescription("Bot list and custom settings reloaded!");
                     }
                     msg.channel.send(embed);
@@ -326,5 +326,5 @@ class ServerPainel {
         }
     }
 }
-exports.ServerPainel = ServerPainel;
-//# sourceMappingURL=Painel.js.map
+exports.ControlPanel = ControlPanel;
+//# sourceMappingURL=ControlPanel.js.map

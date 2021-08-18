@@ -5,7 +5,7 @@ import { HaxballServerConfig } from "../Global";
 
 function validate(object: any): object is HaxballServerConfig {
     if (!(object as HaxballServerConfig).server) return false;
-    if (!(object as HaxballServerConfig).painel) return false;
+    if (!(object as HaxballServerConfig).panel) return false;
 
     return true;
 }

@@ -1,6 +1,6 @@
 import { Server } from "./Server";
-import { PainelConfig } from "./Global";
-export declare class ServerPainel {
+import { PanelConfig } from "./Global";
+export declare class ControlPanel {
     private server;
     private fileName?;
     private client;
@@ -11,7 +11,7 @@ export declare class ServerPainel {
     private mastersDiscordId;
     private bots;
     private customSettings?;
-    constructor(server: Server, config: PainelConfig, fileName?: string | undefined);
+    constructor(server: Server, config: PanelConfig, fileName?: string | undefined);
     private loadCustomSettings;
     private loadBots;
     private logError;

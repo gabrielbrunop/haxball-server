@@ -13,7 +13,7 @@ declare type BotList = {
     path: string;
     displayName?: string;
 }[];
-export interface PainelConfig {
+export interface PanelConfig {
     discordToken: string;
     discordPrefix: string;
     bots: BotList;
@@ -30,7 +30,7 @@ export interface ServerConfig {
 }
 export interface HaxballServerConfig {
     server: ServerConfig;
-    painel: PainelConfig;
+    panel: PanelConfig;
 }
 export interface CustomSettings {
     extends?: string;
