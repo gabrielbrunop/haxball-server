@@ -189,10 +189,12 @@ export class Server {
         let token;
 
         for (const t of tokens) {
-            if (t != "" && this.checkTokenWorks(page, t)) token = t;
+            if (t != "" && await this.checkTokenWorks(page, t)) token = t;
         }
 
-        if (token == null) throw new Error(`Token \`${token}\` is not valid.`);
+        const tokenListStr = tokens.filter(t => t && t != "").map(t => "`" + t + "`").join(", ");
+
+        if (token == null) throw new Error(`Invalid token (tried ${tokenListStr}).`);
 
         const scripts = `
         window.HBInit = new Proxy(window.HBInit, {
