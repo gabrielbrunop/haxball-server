@@ -28,6 +28,7 @@ const DebuggingServer_1 = require("./debugging/DebuggingServer");
 const getAvailablePort_1 = require("./utils/getAvailablePort");
 const escapeString_1 = require("./utils/escapeString");
 const Global = __importStar(require("./Global"));
+const Global_1 = require("./Global");
 const selectorFrame = 'body > iframe';
 const selectorRoomLink = '#roomlink > p > a';
 const blockedRes = [
@@ -130,7 +131,20 @@ class Server {
             (_a = this.debuggingServer) === null || _a === void 0 ? void 0 : _a.addRoom(remotePort);
         return browser;
     }
-    async openRoom(page, script, token, name) {
+    async checkTokenWorks(page, token) {
+        return await page.evaluate(async (token) => {
+            return await new Promise((resolve) => {
+                const server = new WebSocket(`wss://p2p2.haxball.com/host?token=${token}`);
+                server.onopen = function () {
+                    resolve(true);
+                };
+                server.onerror = function () {
+                    resolve(false);
+                };
+            });
+        }, token);
+    }
+    async openRoom(page, script, tokens, name, settings) {
         page
             .on('pageerror', ({ message }) => console.log(message))
             .on('response', response => console.log(`${response.status()} : ${response.url()}`))
@@ -144,30 +158,44 @@ class Server {
         else {
             name = `args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}"`;
         }
+        let reservedHBInitCustomSettingsScript = "";
+        let customSettingsScript = {};
+        if (settings) {
+            for (const setting of Object.entries(settings)) {
+                const key = setting[0];
+                const value = setting[1];
+                if (Global_1.roomCustomConfigsList.map(config => "reserved.haxball." + config).includes(key)) {
+                    reservedHBInitCustomSettingsScript += `args[0]["${escapeString_1.escapeString(key.replace("reserved.haxball.", ""))}"] = ${JSON.stringify(value)};`;
+                }
+                else {
+                    customSettingsScript[key] = value;
+                }
+            }
+        }
+        await client.send('Network.setBlockedURLs', { urls: blockedRes });
+        await page.goto('https://www.haxball.com/headless', { waitUntil: 'networkidle2' });
+        let token;
+        for (const t of tokens) {
+            if (t != "" && this.checkTokenWorks(page, t))
+                token = t;
+        }
+        if (token == null)
+            throw new Error(`Token \`${token}\` is not valid.`);
         const scripts = `
         window.HBInit = new Proxy(window.HBInit, {
             apply: (target, thisArg, args) => {
                 args[0]["token"] = "${token}";
+
+                ${reservedHBInitCustomSettingsScript}
+
                 document.title = ${name};
         
                 return target(...args);
             }
-        });`;
-        await client.send('Network.setBlockedURLs', { urls: blockedRes });
-        await page.goto('https://www.haxball.com/headless', { waitUntil: 'networkidle2' });
-        const isTokenOk = await page.evaluate(async (token) => {
-            return await new Promise((resolve) => {
-                const server = new WebSocket(`wss://p2p2.haxball.com/host?token=${token}`);
-                server.onopen = function () {
-                    resolve(true);
-                };
-                server.onerror = function () {
-                    resolve(false);
-                };
-            });
-        }, token);
-        if (!isTokenOk)
-            throw new Error("Invalid token.");
+        });
+        
+        window["CustomSettings"] = ${JSON.stringify(customSettingsScript)};
+        `;
         await page.addScriptTag({ content: scripts });
         await page.addScriptTag({ content: script });
         await page.waitForSelector("iframe");
@@ -178,13 +206,14 @@ class Server {
         const link = await frame.evaluate(el => el.textContent, roomLinkElement);
         return link;
     }
-    async open(script, token, name) {
+    async open(script, tokens, name, settings) {
         var _a;
         const browser = await this.createNewBrowser();
         const pid = (_a = browser === null || browser === void 0 ? void 0 : browser.process()) === null || _a === void 0 ? void 0 : _a.pid;
         const [page] = await browser.pages();
+        tokens = typeof tokens === "string" ? [tokens] : tokens;
         try {
-            const link = await this.openRoom(page, script, token, name);
+            const link = await this.openRoom(page, script, tokens, name, settings);
             return { link, pid, remotePort: browser["remotePort"] };
         }
         catch (e) {

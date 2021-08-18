@@ -47,9 +47,9 @@ class Bot {
             });
         });
     }
-    run(server, data, token) {
+    run(server, data, tokens, settings) {
         return new Promise((resolve, reject) => {
-            server.open(data, token, this.displayName)
+            server.open(data, tokens, this.displayName, settings)
                 .then(e => resolve(e))
                 .catch(err => reject(err));
         });
@@ -66,6 +66,8 @@ class ServerPainel {
         this.prefix = config.discordPrefix;
         this.token = config.discordToken;
         this.mastersDiscordId = config.mastersDiscordId;
+        if (config.customSettings)
+            this.loadCustomSettings(config.customSettings);
         this.loadBots(config.bots);
         this.client.on('ready', () => {
             var _a;
@@ -80,6 +82,17 @@ class ServerPainel {
             }
         });
         this.client.login(this.token);
+    }
+    loadCustomSettings(customSettings) {
+        this.customSettings = undefined;
+        for (const entry of Object.entries(customSettings)) {
+            const key = entry[0];
+            const value = entry[1];
+            if (value.extends && customSettings[value.extends]) {
+                customSettings[key] = Object.assign(Object.assign({}, customSettings[value.extends]), customSettings[key]);
+            }
+        }
+        this.customSettings = customSettings;
     }
     loadBots(bots) {
         this.bots = [];
@@ -173,19 +186,29 @@ class ServerPainel {
             }
             if (command === "open") {
                 embed.setTitle("Open room");
-                const token = text.replace(args[0], "").trim().replace(/\"/g, "").replace("Token obtained: ", "");
                 const bot = this.bots.find(b => b.name === args[0]);
                 if (!bot) {
                     embed.setDescription(`This bot does not exist. Type ${this.prefix}info to see the list of available bots.`);
                     return msg.channel.send(embed);
                 }
+                let token = text.replace(args[0], "").trim().replace(/\"/g, "").replace("Token obtained: ", "");
                 if (!token || token === "") {
                     embed.setDescription(`You have to define a [headless token](https://www.haxball.com/headlesstoken) as second argument: ${this.prefix}open <bot> <token>`);
                     return msg.channel.send(embed);
                 }
+                let settings;
+                let settingsMsg = "No setting has been loaded (not specified or not found).";
+                if (this.customSettings != null) {
+                    const settingArg = args[args.length - 1];
+                    settings = this.customSettings[settingArg];
+                    if (settings) {
+                        settingsMsg = `\`${settingArg}\` settings have been loaded.`;
+                        token = token.replace(settingArg, "").trim();
+                    }
+                }
                 bot.read().then(script => {
-                    bot.run(this.server, script, token).then(e => {
-                        msg.channel.send(embed.setDescription(`Room running! [Click here to join.](${e === null || e === void 0 ? void 0 : e.link})\nBrowser process: ${e === null || e === void 0 ? void 0 : e.pid}${(e === null || e === void 0 ? void 0 : e.remotePort) ? `\nRemote debugging: localhost:${e.remotePort}` : ""}`));
+                    bot.run(this.server, script, [token, token.substring(0, token.lastIndexOf(" "))], settings).then(e => {
+                        msg.channel.send(embed.setDescription(`Room running! [Click here to join.](${e === null || e === void 0 ? void 0 : e.link})\nBrowser process: ${e === null || e === void 0 ? void 0 : e.pid}${(e === null || e === void 0 ? void 0 : e.remotePort) ? `\nRemote debugging: localhost:${e.remotePort}` : ""}\n${settingsMsg}`));
                     })
                         .catch(err => {
                         msg.channel.send(embed.setDescription(`Unable to open the room!\n ${err}`));
@@ -200,7 +223,8 @@ class ServerPainel {
                 embed
                     .setTitle("Information")
                     .addField("Open rooms", roomList)
-                    .addField("Bot list", this.bots.map(b => b.name).join("\n"));
+                    .addField("Bot list", this.bots.map(b => b.name).join("\n"))
+                    .addField("Custom settings list", this.customSettings ? Object.keys(this.customSettings).join("\n") : "No custom settings have been specified.");
                 msg.channel.send(embed);
             }
             if (command === "meminfo") {
@@ -259,14 +283,16 @@ class ServerPainel {
                 }
             }
             if (command === "reload") {
-                embed.setTitle("Reload bots").setColor(0xFF0000);
+                embed.setTitle("Reload bots and custom settings").setColor(0xFF0000);
                 loadConfig_1.loadConfig(this.fileName).then((config) => {
                     if (!config.painel.bots) {
                         embed.setDescription("Could not find bots in config file.");
                     }
                     else {
                         this.loadBots(config.painel.bots);
-                        embed.setColor(0x0099FF).setDescription("Bot list reloaded!");
+                        if (config.painel.customSettings)
+                            this.loadCustomSettings(config.painel.customSettings);
+                        embed.setColor(0x0099FF).setDescription("Bot list and custom settings reloaded!");
                     }
                     msg.channel.send(embed);
                 }).catch(err => {

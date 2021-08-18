@@ -41,7 +41,8 @@ export interface HaxballServerConfig {
 }
 
 export interface CustomSettings {
-    [key: string | ReservedCustomSettings]: any;
+    extends?: string;
+    [key: string]: any;
 }
 
 export type ReservedCustomSettings =

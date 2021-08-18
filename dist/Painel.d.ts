@@ -10,7 +10,9 @@ export declare class ServerPainel {
     private token;
     private mastersDiscordId;
     private bots;
+    private customSettings?;
     constructor(server: Server, config: PainelConfig, fileName?: string | undefined);
+    private loadCustomSettings;
     private loadBots;
     private logError;
     private getRoomNameList;

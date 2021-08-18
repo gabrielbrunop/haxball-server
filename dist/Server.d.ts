@@ -1,5 +1,5 @@
 import puppeteer from 'puppeteer-core';
-import { ServerConfig } from "./Global";
+import { CustomSettings, ServerConfig } from "./Global";
 export declare class Server {
     browsers: puppeteer.Browser[];
     private unnamedCount;
@@ -13,8 +13,9 @@ export declare class Server {
     private debuggingServer?;
     constructor(config: ServerConfig);
     private createNewBrowser;
+    private checkTokenWorks;
     private openRoom;
-    open(script: string, token: string, name?: string): Promise<{
+    open(script: string, tokens: string | string[], name?: string, settings?: CustomSettings): Promise<{
         link: string;
         pid: number | undefined;
         remotePort: any;

@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer-core';
+import puppeteer, { Page } from 'puppeteer-core';
 
 import { DebuggingServer } from "./debugging/DebuggingServer";
 import { getAvailablePort } from "./utils/getAvailablePort";
@@ -133,8 +133,24 @@ export class Server {
 
         return browser;
     }
+    
+    private async checkTokenWorks(page: Page, token: string) {
+        return await page.evaluate(async (token) => {
+            return await new Promise((resolve) => {
+                const server = new WebSocket(`wss://p2p2.haxball.com/host?token=${token}`);
 
-    private async openRoom(page: puppeteer.Page, script: string, token: string, name?: string, settings?: CustomSettings): Promise<string> {
+                server.onopen = function() {
+                    resolve(true);
+                };
+                
+                server.onerror = function() {
+                    resolve(false);
+                };
+            });
+        }, token);
+    }
+
+    private async openRoom(page: puppeteer.Page, script: string, tokens: string[], name?: string, settings?: CustomSettings): Promise<string> {
         page
 		.on('pageerror', ({ message }) => console.log(message))
 		.on('response', response => console.log(`${response.status()} : ${response.url()}`))
@@ -159,12 +175,23 @@ export class Server {
                 const value = setting[1];
 
                 if (roomCustomConfigsList.map(config => "reserved.haxball." + config).includes(key)) {
-                    reservedHBInitCustomSettingsScript += `args[0]["${escapeString(key)}"] = ${JSON.stringify(value)};`;
+                    reservedHBInitCustomSettingsScript += `args[0]["${escapeString(key.replace("reserved.haxball.", ""))}"] = ${JSON.stringify(value)};`;
                 } else {
                     customSettingsScript[key] = value;
                 }
             }
         }
+
+        await client.send('Network.setBlockedURLs', { urls: blockedRes });
+        await page.goto('https://www.haxball.com/headless', { waitUntil: 'networkidle2' });
+
+        let token;
+
+        for (const t of tokens) {
+            if (t != "" && this.checkTokenWorks(page, t)) token = t;
+        }
+
+        if (token == null) throw new Error(`Token \`${token}\` is not valid.`);
 
         const scripts = `
         window.HBInit = new Proxy(window.HBInit, {
@@ -182,25 +209,6 @@ export class Server {
         window["CustomSettings"] = ${JSON.stringify(customSettingsScript)};
         `;
 
-        await client.send('Network.setBlockedURLs', { urls: blockedRes });
-        await page.goto('https://www.haxball.com/headless', { waitUntil: 'networkidle2' });
-
-        const isTokenOk = await page.evaluate(async (token) => {
-            return await new Promise((resolve) => {
-                const server = new WebSocket(`wss://p2p2.haxball.com/host?token=${token}`);
-
-                server.onopen = function() {
-                    resolve(true);
-                };
-                
-                server.onerror = function() {
-                    resolve(false);
-                };
-            });
-        }, token);
-
-        if (!isTokenOk) throw new Error("Invalid token.");
-
         await page.addScriptTag({ content: scripts });
         await page.addScriptTag({ content: script });
 
@@ -217,13 +225,15 @@ export class Server {
         return link;
     }
 
-    async open(script: string, token: string, name?: string, settings?: CustomSettings) {
+    async open(script: string, tokens: string | string[], name?: string, settings?: CustomSettings) {
         const browser = await this.createNewBrowser();
         const pid = browser?.process()?.pid;
         const [ page ] = await browser.pages();
 
+        tokens = typeof tokens === "string" ? [tokens] : tokens;
+
         try {
-            const link = await this.openRoom(page, script, token, name, settings);
+            const link = await this.openRoom(page, script, tokens, name, settings);
 
             return { link, pid, remotePort: browser["remotePort"] };
         } catch (e) {

@@ -4,6 +4,7 @@ export declare const clientPort = 9600;
 export declare const expressPort = 9601;
 export declare const wsPort = 9602;
 export declare const clientRoomFirstPort = 9603;
+export declare const roomCustomConfigsList: string[];
 declare type BotList = {
     [key: string]: string;
 } | {
@@ -16,6 +17,7 @@ export interface PainelConfig {
     discordPrefix: string;
     bots: BotList;
     mastersDiscordId: string[];
+    customSettings?: CustomSettingsList;
 }
 export interface ServerConfig {
     proxyEnabled?: boolean;
@@ -29,4 +31,12 @@ export interface HaxballServerConfig {
     server: ServerConfig;
     painel: PainelConfig;
 }
+export interface CustomSettings {
+    extends?: string;
+    [key: string]: any;
+}
+export declare type ReservedCustomSettings = "reserved.haxball.roomName" | "reserved.haxball.playerName" | "reserved.haxball.password" | "reserved.haxball.maxPlayers" | "reserved.haxball.public" | "reserved.haxball.geo" | "reserved.haxball.noPlayer";
+export declare type CustomSettingsList = {
+    [key: string]: CustomSettings;
+};
 export {};
