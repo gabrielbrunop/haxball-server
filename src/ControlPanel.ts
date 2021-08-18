@@ -252,6 +252,9 @@ export class ControlPanel {
                     if (settings) {
                         settingsMsg = `\`${settingArg}\` settings have been loaded.`;                        
                         token = token.replace(settingArg, "").trim();
+                    } else if (this.customSettings["default"]) {
+                        settingsMsg = `Default settings have been loaded.`; 
+                        settings = this.customSettings["default"];
                     }
                 }
 

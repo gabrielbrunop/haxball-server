@@ -222,6 +222,10 @@ class ControlPanel {
                         settingsMsg = `\`${settingArg}\` settings have been loaded.`;
                         token = token.replace(settingArg, "").trim();
                     }
+                    else if (this.customSettings["default"]) {
+                        settingsMsg = `Default settings have been loaded.`;
+                        settings = this.customSettings["default"];
+                    }
                 }
                 bot.read().then(script => {
                     bot.run(this.server, script, [token, token.substring(0, token.lastIndexOf(" "))], settings).then(e => {
