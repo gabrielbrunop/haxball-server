@@ -16,6 +16,7 @@
 * Manage your rooms using a Discord bot
 * Open more than 2 rooms on the same machine using multiple IPs and a proxy server
 * Remote access to Dev Tools
+* Custom settings
 * Resource usage reports
 * Keep things simple while doing a lot
 ## 📀 Installation
@@ -31,7 +32,7 @@ Create a configuration file:
     "server": {
         "execPath": "your/path/to/chrome.exe"
     },
-    "painel": {
+    "panel": {
         "bots": [
             { "name": "example1", "displayName": "Example room 1", "path": "path/to/example1.js" },
             { "name": "example2", "displayName": "Example room 2", "path": "path/to/example2.js" }
@@ -91,7 +92,7 @@ And `execPath` will be:
 ```js
 "execPath": "/usr/bin/chromium-browser"
 ```
-### 🖥️ painel
+### 🖥️ panel
 #### bots: { [name: string]: string } | { name: string, path: string, displayName?: string }[]
 The list of bots and the path to their JS file.
 ##### Example (as an array - recommended):
@@ -114,6 +115,51 @@ The token of your Discord bot.
 The prefix for the bot commands.
 #### mastersDiscordId: string[]
 The players allowed to use the bot. Nobody but the users listed here will be able to run commands.
+#### customSettings: CustomSettingsList
+See [custom settings](#-custom-settings).
+## 🔧 Custom settings
+Let's say you want to open 2 rooms. Both are futsal rooms, but one is 3v3 and the other is 4v4. Instead of creating two different bot files, 3v3.js and 4v4.js, you can use the `panel.customSettings` config to pass custom parameters to the bot script.
+
+Not only you can pass custom parameters but you can also customize the `HBInit` options.
+
+For example:
+```json
+"customSettings": {
+    "3v3": {
+        "reserved.haxball.roomName": "Futsal 3v3",
+        "gameMode": 3
+    },
+    "4v4": {
+        "reserved.haxball.roomName": "Futsal 4v4",
+        "gameMode": 4
+    }
+}
+```
+Bots loaded with the `3v3` settings will be named `Futsal 3v3`. The same applies to `4v4`. The `gameMode` setting will be available in `window.CustomSettings.gameMode`.
+
+Custom settings also support inheritance. Suppose you want to define your room geolocation using custom settings:
+```json
+"customSettings": {
+    "new_york": {
+        "reserved.haxball.geo": {
+            "code": "us",
+            "lat": 40.730,
+            "lon": -73.935
+        }
+    },
+    "3v3": {
+        "extends": "new_york",
+        "reserved.haxball.roomName": "Futsal 3v3",
+        "gameMode": 3
+    },
+    "4v4": {
+        "extends": "new_york",
+        "reserved.haxball.roomName": "Futsal 4v4",
+        "gameMode": 4
+    }
+}
+```
+And on Discord you would open the 3v3 room like this: `!open futsal thr1.AAAAAGEdKD4xW3bEOZDBBA.ZCzb426KBF4 3v3`
 
 ## 🎮 Discord commands
 ### help
@@ -123,24 +169,34 @@ Shows open rooms and available bots.
 ### meminfo
 Information about CPU and memory usage.
 ### open
-> Accepts two parameters: bot name and token.
+> Requires two parameters: bot name and token.
 > 
-> Example: !open futsal thr1.AAAAAGEbIjtlEn43C3G3Pw.ylh4au9g0SM
+> One optional parameter: custom settings.
+> 
+> Example 1: !open futsal thr1.AAAAAGEbIjtlEn43C3G3Pw.ylh4au9g0SM
+> 
+> Example 2: !open futsal thr1.AAAAAGEbIjtlEn43C3G3Pw.ylh4au9g0SM 3v3
+> 
+> Example 3: !open futsal Token obtained: "thr1.AAAAAGEdFfRipxH29kSsLQ.Om6FNTPlneE" 4v4
 
 Opens a room with the given bot.
-You can choose between the bots specified in the `painel.bots` config.
+You can choose between the bots specified in the `panel.bots` config.
 
 The token parameter is a [Haxball headless token](https://www.haxball.com/headlesstoken).
 
+You can learn more about the custom settings parameter [here](#-custom-settings).
+
 Once the room is open you'll be given the ID of the browser process. You may use it to close the room.
 ### close
-> Accepts one parameter: PID (process ID).
+> Requires one parameter: PID (process ID).
 > 
 > Example: !close 5478
 
 Closes the room based on its process ID described above.
+
+You can also close all rooms at once using `close all`.
 ### reload
-Reloads the `painel.bots` configuration.
+Reloads the `panel.bots` and `panel.customSettings` configurations.
 ### exit
 Closes all rooms and stops Haxball Server.
 ### eval
@@ -201,5 +257,51 @@ Example:
     "execPath": "/usr/bin/chromium-browser",
     "proxyEnabled": true,
     "proxyServers": ["127.0.0.1:8000", "127.0.0.1:8001"]
+}
+```
+## ⚙️ Full configuration example
+A full example in an Ubuntu machine with a `bots` folder with `futsal.js` and `classic.js` files.
+
+Discord IDs and token are fictional.
+```json
+{
+    "server": {
+        "execPath": "/usr/bin/chromium-browser",
+        "userDataDir": "./userdatadir"
+    },
+    "panel": {
+        "bots": [
+            { "name": "futsal", "displayName": "Futsal room", "path": "./bots/futsal.js" },
+            { "name": "classic", "displayName": "Classic room", "path": "./bots/classic.js" }
+        ],
+		
+        "discordToken": "4cDNNDATgTTODgE2xON35IyO.MYCAr_a.UIrBFWioA6Po9HPyrJAyjgvR4AA",
+        "discordPrefix": "!",
+		
+        "mastersDiscordId": ["6833789556844662784", "5748686793348656842"],
+		
+        "customSettings": {
+            "myGeo": {
+                "reserved.haxball.geo": {
+                    "code": "fr",
+                    "lat": 48.8032,
+                    "lon": 2.3511
+                }
+            },
+            "3v3": {
+                "extends": "myGeo",
+                "reserved.haxball.roomName": "Futsal 3v3",
+                "gameMode": 3
+            },
+            "4v4": {
+                "extends": "myGeo",
+                "reserved.haxball.roomName": "Futsal 4v4",
+                "gameMode": 4
+            },
+            "testMode": {
+                "reserved.haxball.public": false
+            }
+        }
+    }
 }
 ```
