@@ -12,6 +12,7 @@ export declare class ControlPanel {
     private bots;
     private customSettings?;
     constructor(server: Server, config: PanelConfig, fileName?: string | undefined);
+    private transformSetting;
     private loadCustomSettings;
     private loadBots;
     private logError;

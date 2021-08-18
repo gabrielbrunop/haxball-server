@@ -76,6 +76,26 @@ export class ControlPanel {
         this.client.login(this.token);
     }
 
+    private transformSetting(setting: CustomSettings, list: CustomSettingsList) {
+        if (setting.extends) {
+            let ext = list[setting.extends];
+
+            if (ext) {
+                if (ext.extends) ext = this.transformSetting(ext, list);
+
+                const sett = { ...ext, ...setting };
+
+                delete sett.extends;
+
+                return sett;
+            } else {
+                delete setting.extends;
+            }
+        }
+
+        return setting;
+    }
+
     private loadCustomSettings(customSettings: CustomSettingsList) {
         this.customSettings = undefined;
 
@@ -83,9 +103,7 @@ export class ControlPanel {
             const key = entry[0];
             const value = entry[1];
 
-            if (value.extends && customSettings[value.extends]) {
-                customSettings[key] = { ...customSettings[value.extends], ...customSettings[key] };
-            }
+            customSettings[key] = this.transformSetting(value, customSettings);
         }
 
         this.customSettings = customSettings;

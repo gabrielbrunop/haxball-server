@@ -84,14 +84,28 @@ class ControlPanel {
         });
         this.client.login(this.token);
     }
+    transformSetting(setting, list) {
+        if (setting.extends) {
+            let ext = list[setting.extends];
+            if (ext) {
+                if (ext.extends)
+                    ext = this.transformSetting(ext, list);
+                const sett = Object.assign(Object.assign({}, ext), setting);
+                delete sett.extends;
+                return sett;
+            }
+            else {
+                delete setting.extends;
+            }
+        }
+        return setting;
+    }
     loadCustomSettings(customSettings) {
         this.customSettings = undefined;
         for (const entry of Object.entries(customSettings)) {
             const key = entry[0];
             const value = entry[1];
-            if (value.extends && customSettings[value.extends]) {
-                customSettings[key] = Object.assign(Object.assign({}, customSettings[value.extends]), customSettings[key]);
-            }
+            customSettings[key] = this.transformSetting(value, customSettings);
         }
         this.customSettings = customSettings;
     }
