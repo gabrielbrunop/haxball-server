@@ -293,12 +293,37 @@ export class ServerPainel {
                 embed
                     .setTitle("Close room")
                     .setDescription("Unable to find room");
+
+                if (args[0] === "all") {
+                    let forcedClosedRooms = 0; 
+                    let closedRooms = 0;
+
+                    for (const room of this.server.browsers) {
+                        const pid = room?.process()?.pid;
+
+                        if (pid) {
+                            await this.server.close(pid);
+                        } else {
+                            await room.close();
+
+                            forcedClosedRooms++;
+                        }
+
+                        closedRooms++;
+                    }
+
+                    if (forcedClosedRooms === 0) {
+                        embed.setDescription(`${closedRooms} rooms have been closed.`)
+                    } else {
+                        embed.setDescription(`${closedRooms} rooms have been closed.\n${forcedClosedRooms} rooms have been forced to close.`)
+                    }
+
+                    return msg.channel.send(embed);
+                }
     
                 const res = await this.server.close(text);
     
-                if (res) {
-                    embed.setDescription("Room closed!");
-                }
+                if (res) embed.setDescription("Room closed!");
     
                 msg.channel.send(embed);
             }

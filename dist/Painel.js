@@ -156,7 +156,7 @@ class ServerPainel {
         return roomsUsage;
     }
     async command(msg) {
-        var _a;
+        var _a, _b;
         if (!msg.content.startsWith(this.prefix))
             return;
         const args = msg.content.slice(this.prefix.length).trim().split(' ');
@@ -255,10 +255,31 @@ class ServerPainel {
                 embed
                     .setTitle("Close room")
                     .setDescription("Unable to find room");
-                const res = await this.server.close(text);
-                if (res) {
-                    embed.setDescription("Room closed!");
+                if (args[0] === "all") {
+                    let forcedClosedRooms = 0;
+                    let closedRooms = 0;
+                    for (const room of this.server.browsers) {
+                        const pid = (_b = room === null || room === void 0 ? void 0 : room.process()) === null || _b === void 0 ? void 0 : _b.pid;
+                        if (pid) {
+                            await this.server.close(pid);
+                        }
+                        else {
+                            await room.close();
+                            forcedClosedRooms++;
+                        }
+                        closedRooms++;
+                    }
+                    if (forcedClosedRooms === 0) {
+                        embed.setDescription(`${closedRooms} rooms have been closed.`);
+                    }
+                    else {
+                        embed.setDescription(`${closedRooms} rooms have been closed.\n${forcedClosedRooms} rooms have been forced to close.`);
+                    }
+                    return msg.channel.send(embed);
                 }
+                const res = await this.server.close(text);
+                if (res)
+                    embed.setDescription("Room closed!");
                 msg.channel.send(embed);
             }
             if (command === "exit") {
