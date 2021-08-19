@@ -162,13 +162,22 @@ Custom settings also support inheritance and multiple inheritance. Suppose you w
     },
     "3v3-league": {
         "extends": ["competitive", "3v3"],
-	"reserved.haxball.roomName": "Futsal 3v3 League"
+        "reserved.haxball.roomName": "Futsal 3v3 League"
     }
 }
 ```
 With this configuration you'd open your public rooms with the `3v3` and `4v4` settings, and when there's a match in your league, you'd open a room with the `3v3-league` setting. All using the same `futsal.js` bot!
 
 For instance, on Discord you would open the `3v3` room like this: `!open futsal thr1.AAAAAGEdKD4xW3bEOZDBBA.ZCzb426KBF4 3v3`
+
+You can also create `default` custom settings. This way, every room you open without specifying custom settings will automatically be assigned the `default` settings. For example, if you want to make private every room that have been opened without specifying custom settings:
+```json
+"customSettings": {
+    "default": {
+        "reserved.haxball.public": false
+    }
+}
+```
 
 ## 🎮 Discord commands
 ### help
