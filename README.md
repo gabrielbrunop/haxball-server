@@ -115,7 +115,7 @@ The token of your Discord bot.
 The prefix for the bot commands.
 #### mastersDiscordId: string[]
 The players allowed to use the bot. Nobody but the users listed here will be able to run commands.
-#### customSettings: CustomSettingsList
+#### customSettings?: CustomSettingsList
 See [custom settings](#-custom-settings).
 ## 🔧 Custom settings
 Let's say you want to open 2 rooms. Both are futsal rooms, but one is 3v3 and the other is 4v4. Instead of creating two different bot files, 3v3.js and 4v4.js, you can use the `panel.customSettings` config to pass custom parameters to the bot script.
