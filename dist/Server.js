@@ -156,12 +156,7 @@ class Server {
         if (this.disableCache)
             await page.setCacheEnabled(false);
         const client = await page.target().createCDPSession();
-        if (name) {
-            name = `"${escapeString_1.escapeString(name)}"`;
-        }
-        else {
-            name = `args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}"`;
-        }
+        name = `(args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}")` + (name ? ` + " (${escapeString_1.escapeString(name)})"` : "");
         let reservedHBInitCustomSettingsScript = "";
         let customSettingsScript = {};
         if (settings) {

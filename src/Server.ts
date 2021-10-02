@@ -164,11 +164,7 @@ export class Server {
 
         const client = await page.target().createCDPSession();
 
-        if (name) {
-            name = `"${escapeString(name)}"`;
-        } else {
-            name = `args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}"`;
-        }
+        name = `(args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}")` + (name ? ` + " (${escapeString(name)})"` : "");
 
         let reservedHBInitCustomSettingsScript = "";
         let customSettingsScript = {};
