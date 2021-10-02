@@ -81,6 +81,8 @@ The proxy IP addresses. This is required if you enable proxies. Example:
 Disable all caching. Rooms will be started in incognito mode. This is highly recommended if you're not using localStorage or IndexedDB (and you shouldn't). 
 #### disableRemote?: boolean
 Disable remote debugging. The server won't listen for connections.
+#### disableAnonymizeLocalIps?: boolean
+Adds the `--disable-features=WebRtcHideLocalIpsWithMdns` flag to Chrome. [See more here](https://github.com/haxball/haxball-issues/wiki/Headless-Host#connectivity-warning).
 #### execPath: string
 The path to Chrome (or Chromium) executable file. If you are on Windows this will probably be `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`.
 

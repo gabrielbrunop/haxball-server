@@ -26,6 +26,7 @@ export interface ServerConfig {
     disableCache?: boolean;
     disableRemote?: boolean;
     userDataDir?: string;
+    disableAnonymizeLocalIps?: boolean;
     execPath: string;
 }
 export interface HaxballServerConfig {

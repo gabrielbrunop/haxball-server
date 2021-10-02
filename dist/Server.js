@@ -52,7 +52,7 @@ const blockedRes = [
 ];
 class Server {
     constructor(config) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         this.browsers = [];
         this.unnamedCount = 1;
         this.proxyEnabled = (_a = config === null || config === void 0 ? void 0 : config.proxyEnabled) !== null && _a !== void 0 ? _a : false;
@@ -62,6 +62,7 @@ class Server {
         this.userDataDir = config.userDataDir;
         this.remoteChromePort = Global.serverRoomFirstPort;
         this.disableRemote = (_d = config.disableRemote) !== null && _d !== void 0 ? _d : false;
+        this.disableAnonymizeLocalIps = (_e = config.disableAnonymizeLocalIps) !== null && _e !== void 0 ? _e : false;
         if (!this.disableRemote) {
             this.debuggingServer = new DebuggingServer_1.DebuggingServer();
             this.debuggingServer.listen(Global.serverPort);
@@ -84,6 +85,8 @@ class Server {
             args.push(`--remote-debugging-port=${remotePort}`);
         if (this.disableCache)
             args.push("--incognito");
+        if (this.disableAnonymizeLocalIps)
+            args.push(`--disable-features=WebRtcHideLocalIpsWithMdns`);
         let proxyServer = "";
         if (this.proxyEnabled) {
             let availableProxies = this.proxyServers.filter(s => {

@@ -10,6 +10,7 @@ export declare class Server {
     private disableCache;
     private userDataDir?;
     private disableRemote;
+    private disableAnonymizeLocalIps;
     private debuggingServer?;
     constructor(config: ServerConfig);
     private createNewBrowser;

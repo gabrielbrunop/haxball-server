@@ -43,6 +43,7 @@ export class Server {
     private disableCache: boolean;
     private userDataDir?: string;
     private disableRemote: boolean;
+    private disableAnonymizeLocalIps: boolean;
 
     private debuggingServer?: DebuggingServer;
 
@@ -54,6 +55,7 @@ export class Server {
         this.userDataDir = config.userDataDir;
         this.remoteChromePort = Global.serverRoomFirstPort;
         this.disableRemote = config.disableRemote ?? false;
+        this.disableAnonymizeLocalIps = config.disableAnonymizeLocalIps ?? false;
 
         if (!this.disableRemote) {
             this.debuggingServer = new DebuggingServer();
@@ -77,6 +79,7 @@ export class Server {
 
         if (!this.disableRemote) args.push(`--remote-debugging-port=${remotePort}`);
         if (this.disableCache) args.push("--incognito");
+        if (this.disableAnonymizeLocalIps) args.push(`--disable-features=WebRtcHideLocalIpsWithMdns`);
         
         let proxyServer = "";
 
