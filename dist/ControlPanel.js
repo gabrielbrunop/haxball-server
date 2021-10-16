@@ -237,6 +237,7 @@ class ControlPanel {
                 })
                     .catch(err => {
                     embed.setDescription("Error: " + err);
+                    msg.channel.send(embed);
                 });
             }
             if (command === "info") {

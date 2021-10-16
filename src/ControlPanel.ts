@@ -267,7 +267,9 @@ export class ControlPanel {
                     });
                 })
                 .catch(err => {
-                    embed.setDescription("Error: " + err); 
+                    embed.setDescription("Error: " + err);
+                    
+                    msg.channel.send(embed);
                 });
             }
     
