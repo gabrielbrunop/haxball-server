@@ -119,6 +119,8 @@ The prefix for the bot commands.
 The players allowed to use the bot. Nobody but the users listed here will be able to run commands.
 #### customSettings?: CustomSettingsList
 See [custom settings](#-custom-settings).
+#### maxRooms?: number
+The maximum number of rooms. This is useful if you want more control over the server.
 ## 🔧 Custom settings
 Let's say you want to open 2 rooms. Both are futsal rooms, but one is 3v3 and the other is 4v4. Instead of creating two different bot files, 3v3.js and 4v4.js, you can use the `panel.customSettings` config to pass custom parameters to the bot script.
 
