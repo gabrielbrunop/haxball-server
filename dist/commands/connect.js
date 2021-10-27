@@ -28,10 +28,13 @@ const open_1 = __importDefault(require("open"));
 const DebuggingInterface_1 = require("../debugging/DebuggingInterface");
 const DebuggingClient_1 = require("../debugging/DebuggingClient");
 const Global = __importStar(require("../Global"));
+function openTunnel(config) {
+    return tunnel_ssh_1.default(Object.assign(Object.assign({}, config), { readyTimeout: Global.maxTimeSSHConnection }));
+}
 async function connect(connectConfig) {
     let tunnels = [];
     console.log("Establishing remote connection...");
-    tunnel_ssh_1.default(Object.assign(Object.assign({}, connectConfig), { dstPort: Global.serverPort, localPort: Global.clientPort }))
+    openTunnel(Object.assign(Object.assign({}, connectConfig), { dstPort: Global.serverPort, localPort: Global.clientPort }))
         .on("error", (err) => {
         console.error("Error: " + err.message);
         console.error("A Haxball Server connection could not be opened.");
@@ -40,14 +43,18 @@ async function connect(connectConfig) {
     const client = new DebuggingClient_1.DebuggingClient();
     client.on("set", async (rooms) => {
         for (const room of rooms) {
-            const tunnelSrv = tunnel_ssh_1.default(Object.assign(Object.assign({}, connectConfig), { dstPort: room.server, localPort: room.client }));
+            const tunnelSrv = openTunnel(Object.assign(Object.assign({}, connectConfig), { dstPort: room.server, localPort: room.client }));
             tunnels.push({ port: room.client, server: tunnelSrv });
         }
         const url = new DebuggingInterface_1.ConnectInterface().listen(Global.expressPort, Global.wsPort, client);
         await open_1.default(url);
     });
     client.on("add", async (server, client) => {
-        const tunnelSrv = tunnel_ssh_1.default(Object.assign(Object.assign({}, connectConfig), { dstPort: server, localPort: client }));
+        const tunnelSrv = openTunnel(Object.assign(Object.assign({}, connectConfig), { dstPort: server, localPort: client }))
+            .on("error", (err) => {
+            console.error("Error: " + err.message);
+            console.error("Failed to connect to room.");
+        });
         tunnels.push({ port: client, server: tunnelSrv });
     });
     client.on("remove", async (server, client) => {

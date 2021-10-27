@@ -83,6 +83,11 @@ class DebuggingClient extends events_1.default {
             console.error(err);
             (_a = this.client) === null || _a === void 0 ? void 0 : _a.destroy();
         });
+        this.client.on("timeout", () => {
+            var _a;
+            console.log('Connection to debugging server timed out');
+            (_a = this.client) === null || _a === void 0 ? void 0 : _a.destroy();
+        });
     }
 }
 exports.DebuggingClient = DebuggingClient;

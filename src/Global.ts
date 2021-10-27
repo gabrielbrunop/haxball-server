@@ -8,6 +8,8 @@ export const clientRoomFirstPort = 9603;
 
 export const maxLengthLog = 300;
 
+export const maxTimeSSHConnection = 2 * 60 * 1000;
+
 export const roomCustomConfigsList = [
     "roomName",
     "playerName",

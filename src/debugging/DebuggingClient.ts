@@ -77,6 +77,13 @@ export class DebuggingClient extends EventEmitter {
 
         this.client.on("error", (err) => {
             console.error(err);
+
+            this.client?.destroy();
+        });
+
+        this.client.on("timeout", () => {
+            console.log('Connection to debugging server timed out');
+
             this.client?.destroy();
         });
     }

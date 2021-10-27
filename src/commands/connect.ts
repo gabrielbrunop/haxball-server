@@ -7,12 +7,18 @@ import { DebuggingClient } from "../debugging/DebuggingClient"
 
 import * as Global from "../Global";
 
+type Tunnel = { port: number, server: any };
+
+function openTunnel(config: tunnel.Config) {
+    return tunnel({ ...config, readyTimeout: Global.maxTimeSSHConnection });
+}
+
 export async function connect(connectConfig: Config) {
-    let tunnels: { port: number, server: any }[] = [];
+    let tunnels: Tunnel[] = [];
 
     console.log("Establishing remote connection...");
 
-    tunnel({ ...connectConfig, dstPort: Global.serverPort, localPort: Global.clientPort })
+    openTunnel({ ...connectConfig, dstPort: Global.serverPort, localPort: Global.clientPort })
     .on("error", (err) => {
         console.error("Error: " + err.message)
         console.error("A Haxball Server connection could not be opened.");
@@ -23,8 +29,8 @@ export async function connect(connectConfig: Config) {
 
     client.on("set", async (rooms) => {
         for (const room of rooms) {
-            const tunnelSrv = tunnel({ ...connectConfig, dstPort: room.server, localPort: room.client });
-            
+            const tunnelSrv = openTunnel({ ...connectConfig, dstPort: room.server, localPort: room.client })
+
             tunnels.push({ port: room.client, server: tunnelSrv });
         }
 
@@ -34,7 +40,11 @@ export async function connect(connectConfig: Config) {
     });
 
     client.on("add", async (server, client) => {
-        const tunnelSrv = tunnel({ ...connectConfig, dstPort: server, localPort: client });
+        const tunnelSrv = openTunnel({ ...connectConfig, dstPort: server, localPort: client })
+        .on("error", (err) => {
+            console.error("Error: " + err.message)
+            console.error("Failed to connect to room.");
+        });
 
         tunnels.push({ port: client, server: tunnelSrv });
     });
