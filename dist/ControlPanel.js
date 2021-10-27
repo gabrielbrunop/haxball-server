@@ -232,17 +232,19 @@ class ControlPanel {
                         settings = this.customSettings["default"];
                     }
                 }
+                embed.setDescription("Opening room...");
+                const message = await msg.channel.send(embed);
                 bot.read().then(script => {
                     bot.run(this.server, script, [token, token.substring(0, token.lastIndexOf(" "))], settings).then(e => {
-                        msg.channel.send(embed.setDescription(`Room running! [Click here to join.](${e === null || e === void 0 ? void 0 : e.link})\nBrowser process: ${e === null || e === void 0 ? void 0 : e.pid}${(e === null || e === void 0 ? void 0 : e.remotePort) ? `\nRemote debugging: localhost:${e.remotePort}` : ""}\n${settingsMsg}`));
+                        message.edit(embed.setDescription(`Room running! [Click here to join.](${e === null || e === void 0 ? void 0 : e.link})\nBrowser process: ${e === null || e === void 0 ? void 0 : e.pid}${(e === null || e === void 0 ? void 0 : e.remotePort) ? `\nRemote debugging: localhost:${e.remotePort}` : ""}\n${settingsMsg}`));
                     })
                         .catch(err => {
-                        msg.channel.send(embed.setDescription(`Unable to open the room!\n ${err}`));
+                        message.edit(embed.setDescription(`Unable to open the room!\n ${err}`));
                     });
                 })
                     .catch(err => {
                     embed.setDescription("Error: " + err);
-                    msg.channel.send(embed);
+                    message.edit(embed);
                 });
             }
             if (command === "info") {
