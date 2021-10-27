@@ -67,6 +67,7 @@ class ControlPanel {
         this.prefix = config.discordPrefix;
         this.token = config.discordToken;
         this.mastersDiscordId = config.mastersDiscordId;
+        this.maxRooms = config.maxRooms;
         if (config.customSettings)
             this.loadCustomSettings(config.customSettings);
         this.loadBots(config.bots);
@@ -203,6 +204,10 @@ class ControlPanel {
             }
             if (command === "open") {
                 embed.setTitle("Open room");
+                if (this.maxRooms != null && this.server.browsers.length >= this.maxRooms) {
+                    embed.setDescription(`Maximum number of rooms (${this.maxRooms}) excedeed. Update configuration to change this.`);
+                    return msg.channel.send(embed);
+                }
                 const bot = this.bots.find(b => b.name === args[0]);
                 if (!bot) {
                     embed.setDescription(`This bot does not exist. Type ${this.prefix}info to see the list of available bots.`);
@@ -335,6 +340,7 @@ class ControlPanel {
                         this.loadBots(config.panel.bots);
                         if (config.panel.customSettings)
                             this.loadCustomSettings(config.panel.customSettings);
+                        this.maxRooms = config.panel.maxRooms;
                         embed.setColor(0x0099FF).setDescription("Bot list and custom settings reloaded!");
                     }
                     msg.channel.send(embed);

@@ -26,6 +26,7 @@ export interface PanelConfig {
     bots: BotList;
     mastersDiscordId: string[];
     customSettings?: CustomSettingsList;
+    maxRooms?: number;
 }
 
 export interface ServerConfig {

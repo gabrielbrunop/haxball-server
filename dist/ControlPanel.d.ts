@@ -11,6 +11,7 @@ export declare class ControlPanel {
     private mastersDiscordId;
     private bots;
     private customSettings?;
+    private maxRooms?;
     constructor(server: Server, config: PanelConfig, fileName?: string | undefined);
     private transformSetting;
     private loadCustomSettings;
