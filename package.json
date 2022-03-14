@@ -1,6 +1,6 @@
 {
   "name": "haxball-server",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "A feature-rich and stable headless server utility for Haxball",
   "main": "./dist/main.js",
   "homepage": "https://github.com/gabrielbrop/haxball-server#readme",
