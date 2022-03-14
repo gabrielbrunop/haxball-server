@@ -83,6 +83,8 @@ Disable all caching. Rooms will be started in incognito mode. This is highly rec
 Disable remote debugging. The server won't listen for connections.
 #### disableAnonymizeLocalIps?: boolean
 Adds the `--disable-features=WebRtcHideLocalIpsWithMdns` flag to Chrome. [See more here](https://github.com/haxball/haxball-issues/wiki/Headless-Host#connectivity-warning).
+#### maxMemoryUsage?: number
+Set the limit for Javascript memory usage. Max value of 1024 (1 GB) in 32-bit systems and 4096 (4 GB) in 64-bit systems.
 #### execPath: string
 The path to Chrome (or Chromium) executable file. If you are on Windows this will probably be `C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe`.
 

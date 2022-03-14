@@ -38,7 +38,8 @@ export interface ServerConfig {
     disableRemote?: boolean,
     userDataDir?: string,
     disableAnonymizeLocalIps?: boolean,
-    execPath: string
+    execPath: string,
+    maxMemoryUsage: number
 }
 
 export interface HaxballServerConfig {

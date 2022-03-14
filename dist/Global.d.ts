@@ -30,6 +30,7 @@ export interface ServerConfig {
     userDataDir?: string;
     disableAnonymizeLocalIps?: boolean;
     execPath: string;
+    maxMemoryUsage: number;
 }
 export interface HaxballServerConfig {
     server: ServerConfig;

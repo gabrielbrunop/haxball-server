@@ -5,7 +5,7 @@ const Server_1 = require("../Server");
 const ControlPanel_1 = require("../ControlPanel");
 const loadConfig_1 = require("../utils/loadConfig");
 function openServer(file) {
-    loadConfig_1.loadConfig(file).then(config => {
+    (0, loadConfig_1.loadConfig)(file).then(config => {
         const server = new Server_1.Server(config.server);
         new ControlPanel_1.ControlPanel(server, config.panel, file);
     }).catch(err => {

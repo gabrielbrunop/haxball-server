@@ -11,6 +11,7 @@ export declare class Server {
     private userDataDir?;
     private disableRemote;
     private disableAnonymizeLocalIps;
+    private maxMemoryUsage?;
     private debuggingServer?;
     constructor(config: ServerConfig);
     private createNewBrowser;

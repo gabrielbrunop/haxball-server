@@ -29,7 +29,7 @@ class DebuggingServer {
     }
     listen(port) {
         this.server.on("listening", () => {
-            log_1.log("REMOTE DEBUGGING", `Listening to remote connections on port ${port}`);
+            (0, log_1.log)("REMOTE DEBUGGING", `Listening to remote connections on port ${port}`);
         });
         this.server.on("connection", (socket) => {
             socket.setEncoding('utf8');
@@ -38,7 +38,7 @@ class DebuggingServer {
         });
         this.server.on("error", (err) => {
             if (err.message.includes("EADDRINUSE")) {
-                log_1.log("FATAL ERROR", `Remote debugging port ${port} is already in use. Make sure you are not running another instance of Haxball Server in the background.`);
+                (0, log_1.log)("FATAL ERROR", `Remote debugging port ${port} is already in use. Make sure you are not running another instance of Haxball Server in the background.`);
                 process.exit();
             }
             else {
@@ -50,19 +50,19 @@ class DebuggingServer {
     setRooms(rooms) {
         this.roomServers = rooms;
         this.broadcast(RoomDebuggingMessageType.UpdateRooms, rooms);
-        log_1.log("UPDATE ROOM PORTS", rooms.join(", "));
+        (0, log_1.log)("UPDATE ROOM PORTS", rooms.join(", "));
     }
     addRoom(room) {
         this.roomServers.push(room);
         this.broadcast(RoomDebuggingMessageType.AddRoom, room);
-        log_1.log("ADD ROOM PORT", room + "");
+        (0, log_1.log)("ADD ROOM PORT", room + "");
     }
     removeRoom(room) {
         if (!this.roomServers.includes(room))
             return;
         this.roomServers = this.roomServers.filter(r => r !== room);
         this.broadcast(RoomDebuggingMessageType.RemoveRoom, room);
-        log_1.log("DELETE ROOM PORT", room + "");
+        (0, log_1.log)("DELETE ROOM PORT", room + "");
     }
 }
 exports.DebuggingServer = DebuggingServer;

@@ -70,7 +70,7 @@ class ConnectInterface {
         return url;
     }
     openExpressServer(port) {
-        const app = express_1.default();
+        const app = (0, express_1.default)();
         const url = `http://localhost:${port}`;
         app.get('/', (req, res) => {
             res.send(html);

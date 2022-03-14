@@ -63,6 +63,7 @@ class Server {
         this.remoteChromePort = Global.serverRoomFirstPort;
         this.disableRemote = (_d = config.disableRemote) !== null && _d !== void 0 ? _d : false;
         this.disableAnonymizeLocalIps = (_e = config.disableAnonymizeLocalIps) !== null && _e !== void 0 ? _e : false;
+        this.maxMemoryUsage = config.maxMemoryUsage;
         if (!this.disableRemote) {
             this.debuggingServer = new DebuggingServer_1.DebuggingServer();
             this.debuggingServer.listen(Global.serverPort);
@@ -80,13 +81,15 @@ class Server {
             "--single-process",
             "--disable-gpu",
         ];
-        const remotePort = await getAvailablePort_1.getAvailablePort(this.remoteChromePort);
+        const remotePort = await (0, getAvailablePort_1.getAvailablePort)(this.remoteChromePort);
         if (!this.disableRemote)
             args.push(`--remote-debugging-port=${remotePort}`);
         if (this.disableCache)
             args.push("--incognito");
         if (this.disableAnonymizeLocalIps)
             args.push(`--disable-features=WebRtcHideLocalIpsWithMdns`);
+        if (this.maxMemoryUsage)
+            args.push("--max-old-space-size=" + this.maxMemoryUsage);
         let proxyServer = "";
         if (this.proxyEnabled) {
             let availableProxies = this.proxyServers.filter(s => {
@@ -148,15 +151,15 @@ class Server {
         }, token);
     }
     async openRoom(page, script, tokens, name, settings) {
-        page.on("pageerror", ({ message }) => log_1.log("PAGE ERROR", message))
-            .on("response", response => log_1.log("PAGE RESPONSE", `${response.status()} : ${response.url()}`))
-            .on("requestfailed", request => { var _a; return log_1.log("REQUEST FAILED", `${(_a = request.failure()) === null || _a === void 0 ? void 0 : _a.errorText} : ${request.url()}`); })
-            .on("error", (err) => log_1.log("PAGE CRASHED", `${err}`))
-            .on("pageerror", (err) => log_1.log("ERROR IN PAGE", `${err}`));
+        page.on("pageerror", ({ message }) => (0, log_1.log)("PAGE ERROR", message))
+            .on("response", response => (0, log_1.log)("PAGE RESPONSE", `${response.status()} : ${response.url()}`))
+            .on("requestfailed", request => { var _a; return (0, log_1.log)("REQUEST FAILED", `${(_a = request.failure()) === null || _a === void 0 ? void 0 : _a.errorText} : ${request.url()}`); })
+            .on("error", (err) => (0, log_1.log)("PAGE CRASHED", `${err}`))
+            .on("pageerror", (err) => (0, log_1.log)("ERROR IN PAGE", `${err}`));
         if (this.disableCache)
             await page.setCacheEnabled(false);
         const client = await page.target().createCDPSession();
-        name = `(args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}")` + (name ? ` + " (${escapeString_1.escapeString(name)})"` : "");
+        name = `(args[0]["roomName"] ?? "Unnamed room ${this.unnamedCount++}")` + (name ? ` + " (${(0, escapeString_1.escapeString)(name)})"` : "");
         let reservedHBInitCustomSettingsScript = "";
         let customSettingsScript = {};
         if (settings) {
@@ -164,7 +167,7 @@ class Server {
                 const key = setting[0];
                 const value = setting[1];
                 if (Global_1.roomCustomConfigsList.map(config => "reserved.haxball." + config).includes(key)) {
-                    reservedHBInitCustomSettingsScript += `args[0]["${escapeString_1.escapeString(key.replace("reserved.haxball.", ""))}"] = ${JSON.stringify(value)};`;
+                    reservedHBInitCustomSettingsScript += `args[0]["${(0, escapeString_1.escapeString)(key.replace("reserved.haxball.", ""))}"] = ${JSON.stringify(value)};`;
                 }
                 else {
                     customSettingsScript[key] = value;

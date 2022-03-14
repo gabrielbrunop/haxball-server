@@ -8,7 +8,7 @@ const yargs_1 = __importDefault(require("yargs"));
 const fs_1 = __importDefault(require("fs"));
 const connect_1 = require("./commands/connect");
 const openServer_1 = require("./commands/openServer");
-const args = yargs_1.default(process.argv.slice(2));
+const args = (0, yargs_1.default)(process.argv.slice(2));
 args.command({
     command: "open",
     aliases: ["o", "r", "run", "server"],
@@ -21,7 +21,7 @@ args.command({
         }
     },
     handler: (argv) => {
-        openServer_1.openServer(argv.file);
+        (0, openServer_1.openServer)(argv.file);
     }
 });
 args.command({
@@ -59,12 +59,12 @@ args.command({
             keepAlive: true
         };
         if (argv.password != null)
-            await connect_1.connect(Object.assign(Object.assign({}, params), { password: argv.password }));
+            await (0, connect_1.connect)(Object.assign(Object.assign({}, params), { password: argv.password }));
         if (argv.privateKey != null) {
             fs_1.default.readFile(argv.privateKey, { encoding: "utf-8" }, async (err, data) => {
                 if (err)
                     return console.error(`${err.message}\nError while loading private key file`);
-                await connect_1.connect(Object.assign(Object.assign({}, params), { privateKey: Buffer.from(data) }));
+                await (0, connect_1.connect)(Object.assign(Object.assign({}, params), { privateKey: Buffer.from(data) }));
             });
         }
     }

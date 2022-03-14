@@ -73,7 +73,7 @@ class ControlPanel {
         this.loadBots(config.bots);
         this.client.on('ready', () => {
             var _a;
-            log_1.log("DISCORD", `Logged in as ${(_a = this.client.user) === null || _a === void 0 ? void 0 : _a.tag}!`);
+            (0, log_1.log)("DISCORD", `Logged in as ${(_a = this.client.user) === null || _a === void 0 ? void 0 : _a.tag}!`);
         });
         this.client.on('message', async (msg) => {
             try {
@@ -168,7 +168,7 @@ class ControlPanel {
         const roomsUsage = [];
         for (const browser of this.server.browsers) {
             const page = (await browser.pages())[0];
-            roomsUsage.push({ process: await pidusage_1.default((_a = browser === null || browser === void 0 ? void 0 : browser.process()) === null || _a === void 0 ? void 0 : _a.pid), title: await page.title() });
+            roomsUsage.push({ process: await (0, pidusage_1.default)((_a = browser === null || browser === void 0 ? void 0 : browser.process()) === null || _a === void 0 ? void 0 : _a.pid), title: await page.title() });
         }
         return roomsUsage;
     }
@@ -273,7 +273,7 @@ class ControlPanel {
                     .addField("Memory", `${(memInfo.usedMemMb / 1000).toFixed(2)}/${(memInfo.totalMemMb / 1000).toFixed(2)} GB (${memInfo.freeMemPercentage}% livre)`, true)
                     .addField("OS", await node_os_utils_1.default.os.oos(), true)
                     .addField("Machine Uptime", new Date(node_os_utils_1.default.os.uptime() * 1000).toISOString().substr(11, 8), true);
-                const serverPIDUsage = await pidusage_1.default(process_1.default.pid);
+                const serverPIDUsage = await (0, pidusage_1.default)(process_1.default.pid);
                 const serverCPUUsage = `CPU server usage: ${(serverPIDUsage.cpu).toFixed(2)}%\nMemory server usage: ${(serverPIDUsage.memory * 1e-6).toFixed(2)} MB\n`;
                 const roomCPUMessage = this.server.browsers.length > 0 ? "\n" + roomsUsage.map((room) => `**${room.title} (${room.process.pid})**:\n${(room.process.cpu).toFixed(2)}% CPU\n${(room.process.memory * 1e-6).toFixed(2)} MB memory\n`).join("\n") : "";
                 embed.setDescription(serverCPUUsage + roomCPUMessage + "\n");
@@ -334,7 +334,7 @@ class ControlPanel {
             }
             if (command === "reload") {
                 embed.setTitle("Reload bots and custom settings").setColor(0xFF0000);
-                loadConfig_1.loadConfig(this.fileName).then((config) => {
+                (0, loadConfig_1.loadConfig)(this.fileName).then((config) => {
                     if (!config.panel.bots) {
                         embed.setDescription("Could not find bots in config file.");
                     }

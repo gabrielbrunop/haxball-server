@@ -29,7 +29,7 @@ const DebuggingInterface_1 = require("../debugging/DebuggingInterface");
 const DebuggingClient_1 = require("../debugging/DebuggingClient");
 const Global = __importStar(require("../Global"));
 function openTunnel(config) {
-    return tunnel_ssh_1.default(Object.assign(Object.assign({}, config), { readyTimeout: Global.maxTimeSSHConnection }));
+    return (0, tunnel_ssh_1.default)(Object.assign(Object.assign({}, config), { readyTimeout: Global.maxTimeSSHConnection }));
 }
 async function connect(connectConfig) {
     let tunnels = [];
@@ -47,7 +47,7 @@ async function connect(connectConfig) {
             tunnels.push({ port: room.client, server: tunnelSrv });
         }
         const url = new DebuggingInterface_1.ConnectInterface().listen(Global.expressPort, Global.wsPort, client);
-        await open_1.default(url);
+        await (0, open_1.default)(url);
     });
     client.on("add", async (server, client) => {
         const tunnelSrv = openTunnel(Object.assign(Object.assign({}, connectConfig), { dstPort: server, localPort: client }))

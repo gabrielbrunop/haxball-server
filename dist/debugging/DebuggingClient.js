@@ -53,7 +53,7 @@ class DebuggingClient extends events_1.default {
                     const r = [];
                     let prevPort = Global.clientRoomFirstPort;
                     for (const serverPort of json.message) {
-                        const availablePort = await getAvailablePort_1.getAvailablePort(prevPort);
+                        const availablePort = await (0, getAvailablePort_1.getAvailablePort)(prevPort);
                         r.push({ server: serverPort, client: availablePort });
                         prevPort = availablePort + 1;
                     }
@@ -61,7 +61,7 @@ class DebuggingClient extends events_1.default {
                     this.emit("set", r);
                 }
                 if (json.type === DebuggingServer_1.RoomDebuggingMessageType.AddRoom) {
-                    const port = await getAvailablePort_1.getAvailablePort(Global.clientRoomFirstPort);
+                    const port = await (0, getAvailablePort_1.getAvailablePort)(Global.clientRoomFirstPort);
                     this.roomsConn.push({ server: json.message, client: port });
                     this.emit("add", json.message, port);
                 }
