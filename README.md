@@ -246,7 +246,6 @@ Open the `squid.conf` file:
 ```bash
 sudo nano /etc/squid/squid.conf
 ```
-Search for `http_access deny all` and change it to `http_access allow all`.
 
 Then add these lines to the file:
 ```
