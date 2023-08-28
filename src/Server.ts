@@ -12,23 +12,23 @@ const selectorFrame = 'body > iframe';
 const selectorRoomLink = '#roomlink > p > a';
 
 const blockedRes = [
-	'*/favicon.ico',
-	'.css',
-	'.jpg',
-	'.jpeg',
-	'.png',
-	'.svg',
-	'.woff',
+    '*/favicon.ico',
+    '.css',
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.svg',
+    '.woff',
   
-	'*.optimizely.com',
-	'everesttech.net',
-	'userzoom.com',
-	'doubleclick.net',
-	'googleadservices.com',
-	'adservice.google.com/*',
-	'connect.facebook.com',
-	'connect.facebook.net',
-	'sp.analytics.yahoo.com'
+    '*.optimizely.com',
+    'everesttech.net',
+    'userzoom.com',
+    'doubleclick.net',
+    'googleadservices.com',
+    'adservice.google.com/*',
+    'connect.facebook.com',
+    'connect.facebook.net',
+    'sp.analytics.yahoo.com'
 ];
 
 export class Server {
@@ -158,8 +158,8 @@ export class Server {
 
     private async openRoom(page: puppeteer.Page, script: string, tokens: string[], name?: string, settings?: CustomSettings): Promise<string> {
         page.on("pageerror", ({ message }) => log("PAGE ERROR", message))
-		.on("response", response => log("PAGE RESPONSE", `${response.status()} : ${response.url()}`))
-		.on("requestfailed", request => log("REQUEST FAILED", `${request.failure()?.errorText} : ${request.url()}`))
+        .on("response", response => log("PAGE RESPONSE", `${response.status()} : ${response.url()}`))
+        .on("requestfailed", request => log("REQUEST FAILED", `${request.failure()?.errorText} : ${request.url()}`))
         .on("error", (err) => log("PAGE CRASHED", `${err}`))
         .on("pageerror", (err) => log("ERROR IN PAGE", `${err}`));
 
